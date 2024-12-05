@@ -25,14 +25,39 @@ export const columns: ColumnDef<Coupon>[] = [
   {
     accessorKey: "firstValue",
     header: "Anfangsbetrag",
+    cell: (row) => {
+      const value = row.getValue() as number;
+      const formatted = new Intl.NumberFormat("de-DE", {
+        style: "currency",
+        currency: "EUR",
+      }).format(value);
+
+      return row.getValue() ? formatted : "-";
+    },
   },
   {
     accessorKey: "usedValue",
     header: "Eingelöster Betrag",
+    cell: (row) => {
+      const value = row.getValue() as number;
+      const formatted = new Intl.NumberFormat("de-DE", {
+        style: "currency",
+        currency: "EUR",
+      }).format(value);
+      return formatted;
+    },
   },
   {
     accessorKey: "restValue",
-    header: "Rest Betrag",
+    header: "Restbetrag",
+    cell: (row) => {
+      const value = row.getValue() as number;
+      const formatted = new Intl.NumberFormat("de-DE", {
+        style: "currency",
+        currency: "EUR",
+      }).format(value);
+      return formatted;
+    },
   },
   {
     accessorKey: "employee",
@@ -41,5 +66,23 @@ export const columns: ColumnDef<Coupon>[] = [
   {
     accessorKey: "updatedAt",
     header: "letzte Änderung",
+    cell: (row) => {
+      const dateValue = row.getValue() as string;
+      const options: Intl.DateTimeFormatOptions = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      };
+      const formattedDate = new Intl.DateTimeFormat("de-DE", options).format(
+        new Date(dateValue)
+      );
+
+      return formattedDate; // Format the date as needed
+    },
+  },
+  {
+    accessorKey: "",
+    header: "Options",
   },
 ];
