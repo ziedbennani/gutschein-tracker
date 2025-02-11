@@ -24,6 +24,7 @@ model Coupon {
   usedValue   Float?
   restValue   Float
   used        Boolean
+  location    String?
 
   // Ajout de la relation inverse
   couponHistory CouponHistory[] @relation("CouponHistory")
