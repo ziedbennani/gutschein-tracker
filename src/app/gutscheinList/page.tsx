@@ -2,6 +2,9 @@ import { getCoupons } from "../../../lib/prismaFunctions";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 
+// Add this line to disable caching
+export const revalidate = 0;
+
 export default async function DemoPage() {
   try {
     const data = await getCoupons();

@@ -16,6 +16,7 @@ testConnection();
 export async function getCoupons(): Promise<Coupon[]> {
   try {
     const coupons = await prisma.coupon.findMany();
+    console.log("Fetched coupons:", coupons);
 
     if (!coupons) return []; // Return empty array instead of null
 
