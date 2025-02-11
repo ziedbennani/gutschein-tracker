@@ -1,27 +1,32 @@
-import { getCoupons } from "../../../lib/prismaFunctions";
+"use client";
+
+import { useEffect, useState } from "react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
+import { Coupon } from "./columns";
 
-// Add this line to disable caching
-export const revalidate = 0;
+export default function DemoPage() {
+  const [data, setData] = useState<Coupon[]>([]);
 
-export default async function DemoPage() {
-  try {
-    const data = await getCoupons();
-    console.log("data : ", data);
-
-    return (
-      <div className="container mx-auto py-20">
-        <DataTable columns={columns} data={data || []} />
-      </div>
-    );
-  } catch (error) {
-    console.error("Error in DemoPage:", error);
-    // Return an error state or empty table
-    return (
-      <div className="container mx-auto py-20">
-        <DataTable columns={columns} data={[]} />
-      </div>
-    );
+  async function fetchCoupons() {
+    try {
+      const response = await fetch("/api/coupons");
+      const coupons = await response.json();
+      console.log("Fetched coupons:", coupons);
+      setData(coupons);
+    } catch (error) {
+      console.error("Error fetching coupons:", error);
+      setData([]);
+    }
   }
+
+  useEffect(() => {
+    fetchCoupons();
+  }, []);
+
+  return (
+    <div className="container mx-auto py-20">
+      <DataTable columns={columns} data={data} />
+    </div>
+  );
 }

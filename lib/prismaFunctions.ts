@@ -15,25 +15,25 @@ testConnection();
 
 export async function getCoupons(): Promise<Coupon[]> {
   try {
+    // Test database connection
+    await prisma.$connect();
+    console.log("Database connected successfully in getCoupons");
+
     const coupons = await prisma.coupon.findMany();
     console.log("Fetched coupons:", coupons);
 
-    if (!coupons) return []; // Return empty array instead of null
+    if (!coupons) return [];
 
     return coupons.map((coupon: PrismaCoupon) => ({
       ...coupon,
       firstValue: coupon.firstValue,
       usedValue: coupon.usedValue,
       restValue: coupon.restValue,
-      updatedAt: coupon.updatedAt.toISOString(), // Serialize as ISO string
-      createdAt: coupon.createdAt.toISOString(), // Serialize as ISO string
+      updatedAt: coupon.updatedAt.toISOString(),
+      createdAt: coupon.createdAt.toISOString(),
     }));
   } catch (error) {
-    // Ensure error is properly formatted before logging
-    console.error(
-      "Error fetching coupons:",
-      error instanceof Error ? error.message : "Unknown error"
-    );
-    return []; // Return empty array on error
+    console.error("Error in getCoupons:", error);
+    throw error; // Let the error propagate to see it in the logs
   }
 }
