@@ -70,31 +70,31 @@ export const columns: ColumnDef<Coupon>[] = [
     accessorKey: "id",
     header: "Nummer",
   },
-  // {
-  //   accessorKey: "firstValue",
-  //   header: "Anfangsbetrag",
-  //   cell: (row) => {
-  //     const value = row.getValue() as number;
-  //     const formatted = new Intl.NumberFormat("de-DE", {
-  //       style: "currency",
-  //       currency: "EUR",
-  //     }).format(value);
+  {
+    accessorKey: "firstValue",
+    header: "Anfangsbetrag",
+    cell: (row) => {
+      const value = row.getValue() as number;
+      const formatted = new Intl.NumberFormat("de-DE", {
+        style: "currency",
+        currency: "EUR",
+      }).format(value);
 
-  //     return row.getValue() ? formatted : "-";
-  //   },
-  // },
-  // {
-  //   accessorKey: "usedValue",
-  //   header: "Eingelöster Betrag",
-  //   cell: (row) => {
-  //     const value = row.getValue() as number;
-  //     const formatted = new Intl.NumberFormat("de-DE", {
-  //       style: "currency",
-  //       currency: "EUR",
-  //     }).format(value);
-  //     return formatted;
-  //   },
-  // },
+      return row.getValue() ? formatted : "-";
+    },
+  },
+  {
+    accessorKey: "usedValue",
+    header: "Eingelöster Betrag",
+    cell: (row) => {
+      const value = row.getValue() as number;
+      const formatted = new Intl.NumberFormat("de-DE", {
+        style: "currency",
+        currency: "EUR",
+      }).format(value);
+      return formatted;
+    },
+  },
   {
     accessorKey: "restValue",
     header: "Aktueller Betrag",
