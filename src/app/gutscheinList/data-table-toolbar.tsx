@@ -8,12 +8,11 @@ import AddCoupon from "./add-coupon";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
-  data: any;
+  data: TData[];
 }
 
 export function DataTableToolbar<TData>({
   table,
-  data,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 

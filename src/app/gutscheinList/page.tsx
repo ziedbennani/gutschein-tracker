@@ -1,5 +1,5 @@
 import { getCoupons } from "../../../lib/prismaFunctions";
-import { Coupon, columns } from "./columns";
+import { columns } from "./columns";
 import { DataTable } from "./data-table";
 
 export default async function DemoPage() {

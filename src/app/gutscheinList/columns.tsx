@@ -2,7 +2,6 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -132,9 +131,9 @@ export const columns: ColumnDef<Coupon>[] = [
   {
     id: "actions",
     header: "Options",
-    cell: ({ row }) => {
-      const coupon = row.original;
+    cell: function CouponCell({ row }) {
       const [isDialogOpen, setIsDialogOpen] = useState(false);
+      const coupon = row.original;
 
       return (
         <div className="flex items-center gap-2">

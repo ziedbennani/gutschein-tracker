@@ -1,15 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function POST(
-  request: Request,
-  context: { params: { id: string } }
-) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function POST(req: NextRequest, { params }: { params: any }) {
+  const couponId = params.id;
+
   try {
-    const { usedValue, employee, location } = await request.json();
-    const couponId = context.params.id;
+    const { usedValue, employee, location } = await req.json();
 
     // Get the current coupon
     const currentCoupon = await prisma.coupon.findUnique({
@@ -24,7 +23,6 @@ export async function POST(
     const newUsedValue = (currentCoupon.usedValue || 0) + Number(usedValue);
     const newRestValue = (currentCoupon.firstValue || 0) - newUsedValue;
 
-    // Check if there's enough value left
     if (newRestValue < 0) {
       return NextResponse.json(
         { error: "Insufficient coupon value" },
@@ -32,16 +30,16 @@ export async function POST(
       );
     }
 
-    // Update the coupon with employee and location
+    // Update the coupon
     const updatedCoupon = await prisma.coupon.update({
       where: { id: couponId },
       data: {
         usedValue: newUsedValue,
         restValue: newRestValue,
         used: newRestValue === 0,
+        employee,
+        location,
         updatedAt: new Date(),
-        employee: employee,
-        location: location,
       },
     });
 

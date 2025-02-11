@@ -1,23 +1,14 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, FieldErrors } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -70,9 +61,11 @@ interface ProfileFormProps {
   setDialogOpen: (open: boolean) => void;
 }
 
+// Define your form data type (if using Zod)
+type FormData = z.infer<typeof formSchema>;
+
 export function ProfileForm({ setDialogOpen }: ProfileFormProps) {
   const router = useRouter();
-  // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -81,19 +74,8 @@ export function ProfileForm({ setDialogOpen }: ProfileFormProps) {
       employee: "",
       location: undefined,
     },
-    mode: "onChange", // This enables validation as the user types
+    mode: "onChange",
   });
-
-  // Watch firstValue and usedValue
-  const { setValue, watch } = form;
-  const firstValue = watch("firstValue");
-  // const usedValue = watch("usedValue");
-
-  // Update restValue whenever firstValue or usedValue changes
-  // useEffect(() => {
-  //   const restValue = (firstValue ?? 0) - (usedValue ?? 0);
-  //   setValue("restValue", restValue);
-  // }, [firstValue, usedValue, setValue]);
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -121,9 +103,16 @@ export function ProfileForm({ setDialogOpen }: ProfileFormProps) {
     }
   }
 
+  // Properly type the onError function
+  function onError(errors: FieldErrors<FormData>) {
+    console.log("Form errors:", errors);
+  }
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        onSubmit={form.handleSubmit(onSubmit, onError)}
+        className="space-y-8">
         <div className="flex gap-4">
           <div className="flex-1">
             <FormField
@@ -165,30 +154,6 @@ export function ProfileForm({ setDialogOpen }: ProfileFormProps) {
             />
           </div>
         </div>
-        {/* <div className="grid gap-3">
-          <FormField
-            control={form.control}
-            name="usedValue"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Eingelöster Betrag</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="2,50 €"
-                    type="number"
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value ? Number(e.target.value) : null
-                      )
-                    }
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        </div> */}
         <div className="flex gap-4">
           <div className="flex-1">
             <FormField
@@ -239,16 +204,14 @@ export function ProfileForm({ setDialogOpen }: ProfileFormProps) {
   );
 }
 
-const AddCoupon = ({ data }: any) => {
+const AddCoupon = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       {/* <Dialog> */}
       <DialogTrigger asChild>
-        <Button onClick={() => console.log("data : ", data)}>
-          Gutschein Erstellen
-        </Button>
+        <Button>Gutschein Erstellen</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
