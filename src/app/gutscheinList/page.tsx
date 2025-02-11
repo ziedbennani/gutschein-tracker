@@ -5,6 +5,7 @@ import { DataTable } from "./data-table";
 export default async function DemoPage() {
   try {
     const data = await getCoupons();
+    console.log("data : ", data);
 
     return (
       <div className="container mx-auto py-20">
