@@ -15,17 +15,27 @@ testConnection();
 
 export async function getCoupons(): Promise<Coupon[]> {
   try {
-    const coupons = await prisma.coupon.findMany();
+    const coupons = await prisma.coupon.findMany({
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
 
-    if (!coupons) return []; // Return empty array instead of null
+    if (!coupons) return [];
 
     return coupons.map((coupon: PrismaCoupon) => ({
       ...coupon,
       firstValue: coupon.firstValue,
       usedValue: coupon.usedValue,
       restValue: coupon.restValue,
-      updatedAt: coupon.updatedAt.toISOString(), // Serialize as ISO string
-      createdAt: coupon.createdAt.toISOString(), // Serialize as ISO string
+      updatedAt: coupon.updatedAt.toISOString(),
+      createdAt: coupon.createdAt.toISOString(),
+      location: coupon.location as
+        | "Braugasse"
+        | "Transit"
+        | "Pit Stop"
+        | "Wirges"
+        | undefined,
     }));
   } catch (error) {
     // Ensure error is properly formatted before logging
@@ -33,6 +43,6 @@ export async function getCoupons(): Promise<Coupon[]> {
       "Error fetching coupons:",
       error instanceof Error ? error.message : "Unknown error"
     );
-    return []; // Return empty array on error
+    return [];
   }
 }

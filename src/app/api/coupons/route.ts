@@ -7,10 +7,16 @@ export async function POST(request: Request) {
     const coupon = await prisma.coupon.create({
       data: {
         ...data,
+        description: `${data.firstValue} € Gutschein erstellt von ${data.employee}`,
       },
     });
-
-    return NextResponse.json(coupon);
+    console.log("coupon created :", coupon);
+    return NextResponse.json({
+      success: true,
+      data: {
+        coupon: coupon,
+      },
+    });
   } catch (error) {
     console.error("Error creating coupon:", error);
     return NextResponse.json(

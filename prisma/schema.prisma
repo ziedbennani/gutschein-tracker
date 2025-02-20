@@ -14,37 +14,42 @@ datasource db {
 }
 
 model Coupon {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  employee    String
-  description String
-  oldSystem   Boolean
-  firstValue  Float?
-  usedValue   Float?
-  restValue   Float
-  used        Boolean
-  location    String?
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  employee     String
+  description  String
+  oldSystem    Boolean
+  oldId        String?  
+  firstValue   Float?
+  usedValue    Float?
+  restValue    Float
+  used         Boolean
+  location     String?
+  extraPayment Float?   
+  tip          Float?   
 
-  // Ajout de la relation inverse
   couponHistory CouponHistory[] @relation("CouponHistory")
 }
 
 model CouponHistory {
-  id          String   @id @default(cuid())
-  modifiedAt  DateTime @default(now())
-  employee    String
-  description String
-  oldSystem   Boolean
-  firstValue  Float?
-  usedValue   Float?
-  restValue   Float
-  used        Boolean
+  id           String   @id @default(cuid())
+  modifiedAt   DateTime @default(now())
+  employee     String
+  description  String
+  oldSystem    Boolean
+  oldId        String?  
+  firstValue   Float?
+  usedValue    Float?
+  restValue    Float
+  used         Boolean
+  location     String?
+  extraPayment Float?   
+  tip          Float?   
 
-  // La relation avec Coupon
   coupon      Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade, name: "CouponHistory")
   couponId    String
 
-  @@index([couponId, modifiedAt])  // Index pour accélérer les requêtes sur ces colonnes
+  @@index([couponId, modifiedAt])  
 }
 

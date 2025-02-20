@@ -32,28 +32,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { toast, useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   id: z
     .string()
-    .min(2, "Nummer ist erforderlich")
-    .transform((val) => val.toUpperCase())
-    .refine(
-      async (id) => {
-        const response = await fetch(`/api/coupons/check-id?id=${id}`);
-        const { exists } = await response.json();
-        return !exists;
-      },
-      { message: "Diese Nummer existiert bereits" }
-    ),
-  firstValue: z.number({
-    required_error: "Betrag ist erforderlich",
-    invalid_type_error: "Betrag muss eine Zahl sein",
-  }),
-  employee: z.string().min(1, "Mitarbeiter ist erforderlich"),
-  location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges"], {
-    required_error: "Laden ist erforderlich",
-  }),
+    .min(2)
+    .transform((val) => val.toUpperCase()),
+  firstValue: z.number().min(1),
+  employee: z.string().min(3),
+  location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges"]),
 });
 
 // Add prop type definition
@@ -74,12 +63,27 @@ export function ProfileForm({ setDialogOpen }: ProfileFormProps) {
       employee: "",
       location: undefined,
     },
-    mode: "onChange",
+    mode: "onSubmit",
   });
 
-  // 2. Define a submit handler.
+  // Modified submit handler
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      // First check if ID exists
+      const checkResponse = await fetch(
+        `/api/coupons/check-id?id=${values.id}`
+      );
+      const { exists } = await checkResponse.json();
+
+      if (exists) {
+        form.setError("id", {
+          type: "manual",
+          message: "Gutschein Nummer schon benutzt ",
+        });
+        return;
+      }
+
+      // If ID doesn't exist, proceed with creating the coupon
       const response = await fetch("/api/coupons", {
         method: "POST",
         headers: {
@@ -95,11 +99,21 @@ export function ProfileForm({ setDialogOpen }: ProfileFormProps) {
       });
 
       if (!response.ok) throw new Error("Failed to create coupon");
-
-      setDialogOpen(false); // Close dialog after successful submission
-      router.refresh(); // Refresh the page to show new data
+      toast({
+        duration: 3000,
+        title: "Gutschein erstellt",
+        description: (
+          <span>
+            Der Gutschein <strong>{values.id}</strong> wurde erfolgreich
+            erstellt.
+          </span>
+        ),
+      });
     } catch (error) {
       console.error("Error creating coupon:", error);
+    } finally {
+      setDialogOpen(false);
+      router.refresh();
     }
   }
 
@@ -113,14 +127,18 @@ export function ProfileForm({ setDialogOpen }: ProfileFormProps) {
       <form
         onSubmit={form.handleSubmit(onSubmit, onError)}
         className="space-y-8">
-        <div className="flex gap-4">
-          <div className="flex-1">
+        <div className="grid grid-cols-2 gap-6">
+          {/* Left Column */}
+          <div className="space-y-4">
             <FormField
               control={form.control}
               name="id"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Nummer</FormLabel>
+                  <FormLabel
+                    className={cn(fieldState.invalid && "text-red-500")}>
+                    Nummer
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="EF1234" {...field} />
                   </FormControl>
@@ -128,54 +146,66 @@ export function ProfileForm({ setDialogOpen }: ProfileFormProps) {
                 </FormItem>
               )}
             />
-          </div>
-          <div className="flex-1">
             <FormField
               control={form.control}
               name="firstValue"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Betrag</FormLabel>
+                  <FormLabel
+                    className={cn(fieldState.invalid && "text-red-500")}>
+                    Betrag
+                  </FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="10,00 €"
-                      type="number"
-                      {...field}
-                      value={field.value ?? ""}
-                      onChange={(e) =>
-                        field.onChange(
-                          e.target.value ? Number(e.target.value) : null
-                        )
-                      }
-                    />
+                    <div className="relative">
+                      <Input
+                        placeholder="10,00"
+                        type="number"
+                        className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value ? Number(e.target.value) : null
+                          )
+                        }
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                        €
+                      </span>
+                    </div>
                   </FormControl>
                 </FormItem>
               )}
             />
           </div>
-        </div>
-        <div className="flex gap-4">
-          <div className="flex-1">
+
+          {/* Right Column */}
+
+          <div className="space-y-4">
             <FormField
               control={form.control}
               name="employee"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Mitarbeiter</FormLabel>
+                  <FormLabel
+                    className={cn(fieldState.invalid && "text-red-500")}>
+                    Mitarbeiter
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Name" {...field} />
                   </FormControl>
                 </FormItem>
               )}
             />
-          </div>
-          <div className="flex-1">
             <FormField
               control={form.control}
               name="location"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Laden</FormLabel>
+                  <FormLabel
+                    className={cn(fieldState.invalid && "text-red-500")}>
+                    Laden
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}>
@@ -191,14 +221,15 @@ export function ProfileForm({ setDialogOpen }: ProfileFormProps) {
                       <SelectItem value="Wirges">Wirges</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
                 </FormItem>
               )}
             />
           </div>
         </div>
 
-        <Button type="submit">Submit</Button>
+        <Button className="flex justify-self-end" type="submit">
+          Bestätigen
+        </Button>
       </form>
     </Form>
   );
@@ -209,19 +240,14 @@ const AddCoupon = () => {
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-      {/* <Dialog> */}
       <DialogTrigger asChild>
         <Button>Gutschein Erstellen</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            Neu Gutschein <Separator className="my-4" />
-          </DialogTitle>
-          <DialogDescription>Bitte alle Felder ausfüllen</DialogDescription>
+          <DialogTitle>Neu Gutschein</DialogTitle>
+          <Separator className="my-4" />
         </DialogHeader>
-
-        {/* <ProfileForm /> */}
         <ProfileForm setDialogOpen={setDialogOpen} />
       </DialogContent>
     </Dialog>

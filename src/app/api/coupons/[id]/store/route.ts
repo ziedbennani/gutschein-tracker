@@ -1,61 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../../../lib/db";
+import { prisma } from "./../../../../../../lib/db";
 
 // This handles PUT requests to /api/coupons/[id]/redeem
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
   try {
-    console.log("Processing request for coupon:", id);
-
-    // Safely parse the request body
-    let data;
-    try {
-      const text = await request.text(); // First get the raw text
-      console.log("Raw request body:", text);
-
-      if (!text) {
-        return NextResponse.json(
-          { error: "Empty request body" },
-          { status: 400 }
-        );
-      }
-
-      data = JSON.parse(text); // Then parse it as JSON
-      console.log("Parsed data:", data);
-    } catch (parseError) {
-      console.error("Failed to parse request body:", parseError);
-      return NextResponse.json(
-        { error: "Invalid JSON in request body" },
-        { status: 400 }
-      );
-    }
-
-    // Validate the parsed data
-    if (!data || typeof data !== "object") {
-      return NextResponse.json(
-        { error: "Invalid request body format" },
-        { status: 400 }
-      );
-    }
-
+    const couponId = params.id;
+    const data = await request.json();
     const { usedValue, employee, location, tip, newId } = data;
-
-    // Validate required fields
-    if (!usedValue || !employee || !location) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
 
     // Fetch the current coupon data
     const currentCoupon = await prisma.coupon.findUnique({
-      where: { id: id },
+      where: { id: couponId },
     });
-    console.log("currentCoupon : ", currentCoupon);
+
     if (!currentCoupon) {
       return NextResponse.json({ error: "Coupon not found" }, { status: 404 });
     }
@@ -67,30 +27,25 @@ export async function PUT(
 
     // Begin a transaction to ensure data consistency
     const result = await prisma.$transaction(async (tx) => {
-      console.log("begin transaction");
       // Create history record first (stores the previous state)
+      // We store the original coupon ID and the target coupon ID (if changed)
       const historyRecord = await tx.couponHistory.create({
         data: {
-          couponId: id,
-          employee: employee,
+          employee: currentCoupon.employee,
           description: newId
-            ? `Übertragung von ${id} zu ${newId}, ${usedValue} € eingelöst`
-            : `${usedValue} € eingelöst von ${employee}`,
+            ? `ID changed from ${couponId} to ${newId}. Redeemed €${usedValue}`
+            : `Redeemed €${usedValue} by ${employee}`,
           oldSystem: currentCoupon.oldSystem,
-          oldId: newId ? id : null,
-          firstValue: currentCoupon.restValue,
-          usedValue: usedValue,
-          restValue: newRestValue,
-          used: isNowUsed,
-          location: location,
+          firstValue: currentCoupon.firstValue,
+          usedValue: currentCoupon.usedValue,
+          restValue: currentCoupon.restValue,
+          used: currentCoupon.used,
+          couponId: couponId,
         },
       });
-      console.log("currentCoupon : ", currentCoupon);
-      console.log("historyRecord : ", historyRecord);
 
       // If newId is provided, update the coupon ID
       if (newId) {
-        console.log("newId : ", newId);
         // First, check if the new ID already exists to avoid conflicts
         const existingCoupon = await tx.coupon.findUnique({
           where: { id: newId },
@@ -102,7 +57,7 @@ export async function PUT(
 
         // Update coupon with new ID and other values
         const updatedCoupon = await tx.coupon.update({
-          where: { id: id },
+          where: { id: couponId },
           data: {
             id: newId,
             restValue: Math.max(0, newRestValue),
@@ -111,7 +66,6 @@ export async function PUT(
             location: location,
             used: isNowUsed,
             updatedAt: new Date(),
-            oldId: id,
           },
         });
 
@@ -121,20 +75,17 @@ export async function PUT(
         };
       } else {
         // Regular update without changing ID
-        console.log("else");
         const updatedCoupon = await tx.coupon.update({
-          where: { id: id },
+          where: { id: couponId },
           data: {
             restValue: Math.max(0, newRestValue),
             usedValue: newUsedValue,
-            description: `${usedValue} € eingelöst von ${employee}`,
             employee: employee,
             location: location,
             used: isNowUsed,
             updatedAt: new Date(),
           },
         });
-        console.log("updatedCoupon else : ", updatedCoupon);
 
         return {
           historyRecord,
