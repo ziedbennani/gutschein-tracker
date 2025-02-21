@@ -49,7 +49,7 @@ const formSchema = z.object({
   usedValue: z.number().min(0.9, "Betrag muss größer als 0,90 € sein"),
   employee: z.string().min(3),
   location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges"]),
-  tip: z.boolean().default(false),
+  tip: z.number().default(0).optional(),
   newId: z
     .string()
     .optional()
@@ -78,7 +78,7 @@ export function RedeemForm({
       usedValue: undefined,
       employee: "",
       location: undefined,
-      tip: false,
+      tip: undefined,
       newId: "",
     },
   });
@@ -177,7 +177,7 @@ export function RedeemForm({
   return (
     <>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="flex gap-6">
             {/* Left Column */}
             <div className="flex-1 flex flex-col">
@@ -261,24 +261,22 @@ export function RedeemForm({
 
             {/* Right Column */}
             <div className="flex-1 flex flex-col">
-              <div>
-                <FormField
-                  control={form.control}
-                  name="employee"
-                  render={({ field, fieldState }) => (
-                    <FormItem>
-                      <FormLabel
-                        className={cn(fieldState.invalid && "text-red-500")}>
-                        Mitarbeiter
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="employee"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel
+                      className={cn(fieldState.invalid && "text-red-500")}>
+                      Mitarbeiter
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="Name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="mt-2">
                 <FormField
@@ -312,19 +310,50 @@ export function RedeemForm({
               </div>
             </div>
           </div>
-          <div className="flex justify-between items-baseline">
+          <div className="flex justify-evenly items-end mt-4 gap-4">
+            <FormField
+              control={form.control}
+              name="tip"
+              render={({ field, fieldState }) => (
+                <FormItem className="flex flex-col ">
+                  <FormLabel
+                    className={cn(fieldState.invalid && "text-red-500")}>
+                    Trinkgeld
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        // style={{ width: "139.25px" }}
+                        placeholder="0,00"
+                        {...field}
+                        value={field.value ?? ""}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                        €
+                      </span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {isFormSubmitted ? (
               <FormField
                 control={form.control}
                 name="newId"
                 render={({ field, fieldState }) => (
-                  <FormItem className="flex items-baseline gap-3">
+                  <FormItem className="flex flex-col">
                     <FormLabel
                       className={cn(fieldState.invalid && "text-red-500")}>
                       Neue Nummer
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="EF1234" {...field} />
+                      <Input
+                        style={{ width: "139.25px" }}
+                        placeholder="EF1234"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -338,11 +367,15 @@ export function RedeemForm({
                 onClick={() => {
                   setFormSubmitted(true);
                 }}>
-                Gutschein voll ?
+                Gutschein Voll ?
               </Button>
             )}
 
-            <Button type="submit">Bestätigen</Button>
+            <Button
+              // style={{ width: "139.25px" }}
+              type="submit">
+              Bestätigen
+            </Button>
           </div>
         </form>
       </Form>

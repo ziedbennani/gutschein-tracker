@@ -83,6 +83,7 @@ export async function PUT(
           restValue: newRestValue,
           used: isNowUsed,
           location: location,
+          tip: tip,
         },
       });
       console.log("currentCoupon : ", currentCoupon);
@@ -112,6 +113,7 @@ export async function PUT(
             used: isNowUsed,
             updatedAt: new Date(),
             oldId: id,
+            tip: tip,
           },
         });
 
@@ -132,6 +134,7 @@ export async function PUT(
             location: location,
             used: isNowUsed,
             updatedAt: new Date(),
+            tip: tip,
           },
         });
         console.log("updatedCoupon else : ", updatedCoupon);

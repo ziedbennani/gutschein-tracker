@@ -243,7 +243,7 @@ const AddCoupon = () => {
       <DialogTrigger asChild>
         <Button>Gutschein Erstellen</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>Neu Gutschein</DialogTitle>
           <Separator className="my-4" />

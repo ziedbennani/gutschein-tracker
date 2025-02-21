@@ -48,7 +48,8 @@ const RedeemCouponDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
-        className="flex gap-12 max-w-fit mx-auto"
+        className="flex p-4 gap-12 max-w-fit mx-auto"
+        aria-describedby={undefined}
         // style={isOpen ? customOverlayStyles : undefined}
       >
         <div className="flex-1">
@@ -66,7 +67,7 @@ const RedeemCouponDialog = ({
                   </span>
                 </span>
               </div>
-              <Separator className="my-4" />
+              <Separator className="my-3" />
             </DialogTitle>
           </DialogHeader>
           <RedeemForm
