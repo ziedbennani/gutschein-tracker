@@ -2,6 +2,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getCoupons } from "../../../lib/prismaFunctions";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
+import { Coupon } from "./columns";
 
 export default async function DemoPage() {
   try {

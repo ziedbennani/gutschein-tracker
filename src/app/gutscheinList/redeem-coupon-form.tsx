@@ -13,7 +13,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import confetti from "canvas-confetti";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Table } from "@tanstack/react-table";
+
 import {
   Select,
   SelectContent,
@@ -22,27 +23,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
 import { Coupon } from "./columns";
-import { formatCurrency } from "./utils";
 import { cn } from "@/lib/utils";
-import { ProfileForm } from "./add-coupon";
 import { useState } from "react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogOverlay,
-} from "@/components/ui/dialog";
-import { Separator } from "@radix-ui/react-separator";
+
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
@@ -56,20 +41,23 @@ const formSchema = z.object({
     .transform((val) => val?.toUpperCase()),
 });
 
-interface RedeemFormProps {
+interface RedeemFormProps<TData> {
   coupon: Coupon;
   setDialogOpen: (open: boolean) => void;
-  onCouponRedeemed: (couponId: string) => void;
+  onCouponRedeemed?: (couponId: string) => void;
+  setIsRedeemReady?: (ready: boolean) => void;
+  table?: Table<TData>;
 }
 
-export function RedeemForm({
+export function RedeemForm<TData>({
   coupon,
   setDialogOpen,
   onCouponRedeemed,
-}: RedeemFormProps) {
+  setIsRedeemReady,
+  table,
+}: RedeemFormProps<TData>) {
   const { toast } = useToast();
   const router = useRouter();
-  const [isProfileFormOpen, setProfileFormOpen] = useState(false);
   const [isFormSubmitted, setFormSubmitted] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -84,25 +72,24 @@ export function RedeemForm({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Submitting form with values:", values);
-
     try {
-      // Use the API route we created to handle the redemption
+      // 1. First, make the API call
       const response = await fetch(`/api/coupons/${coupon.id}/redeem`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
 
       const responseData = await response.json();
-
       if (!response.ok) {
         throw new Error(responseData.error || "Failed to redeem coupon");
       }
 
-      // If everything went well, trigger confetti and show success toast
+      // 2. Update UI state (close dialogs, reset forms)
+      setDialogOpen(false);
+      setIsRedeemReady?.(false);
+
+      // 3. Show success feedback (toast and confetti)
       toast({
         duration: 3000,
         title: "Gutschein eingelöst",
@@ -114,12 +101,9 @@ export function RedeemForm({
         ),
       });
 
-      // Trigger success animation
       confetti({
         angle: 90,
-        origin: {
-          y: 0.7,
-        },
+        origin: { y: 0.7 },
         colors: [
           "#28AFFA",
           "#054a91",
@@ -133,14 +117,11 @@ export function RedeemForm({
         gravity: 0.5,
       });
 
-      // Update the UI
-      setDialogOpen(false);
+      // 4. Update data and trigger rerenders
+      onCouponRedeemed?.(values.newId || coupon.id);
 
-      // Refresh the page to show updated data
+      // 5. Finally, refresh the page data
       router.refresh();
-
-      // Call the callback function passed from parent component
-      onCouponRedeemed(values.newId || coupon.id);
     } catch (error) {
       console.error("Error redeeming coupon:", error);
       toast({
@@ -273,7 +254,6 @@ export function RedeemForm({
                     <FormControl>
                       <Input placeholder="Name" {...field} />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -303,7 +283,6 @@ export function RedeemForm({
                           <SelectItem value="Wirges">Wirges</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -333,7 +312,6 @@ export function RedeemForm({
                       </span>
                     </div>
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -355,7 +333,6 @@ export function RedeemForm({
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />

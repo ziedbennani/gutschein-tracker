@@ -13,9 +13,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ProfileForm } from "./add-coupon";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RedeemForm } from "./redeem-coupon-form";
 import { formatCurrency } from "./utils";
+import { set } from "zod";
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -45,13 +46,14 @@ const RedeemCouponDialog = ({
   setIsOpen: (open: boolean) => void;
   onCouponRedeemed: (couponId: string) => void;
 }) => {
+  useEffect(() => {
+    console.log("isOpen[column.tsx] changed to: ", isOpen);
+  }, [isOpen]);
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
         className="flex p-4 gap-12 max-w-fit mx-auto"
-        aria-describedby={undefined}
-        // style={isOpen ? customOverlayStyles : undefined}
-      >
+        aria-describedby={undefined}>
         <div className="flex-1">
           <DialogHeader>
             <DialogTitle>
@@ -76,15 +78,6 @@ const RedeemCouponDialog = ({
             onCouponRedeemed={onCouponRedeemed}
           />
         </div>
-
-        {/* <div className="flex-1">
-          <DialogHeader>
-            <DialogTitle>
-              Neu Gutschein <Separator className="my-4" />
-            </DialogTitle>
-          </DialogHeader>
-          <ProfileForm setDialogOpen={setIsOpen} />
-        </div> */}
       </DialogContent>
     </Dialog>
   );
@@ -149,9 +142,7 @@ export const columns: ColumnDef<Coupon>[] = [
       const coupon = row.original;
 
       const handleCouponRedeemed = (couponId: string) => {
-        // Logic for handling coupon redemption
         console.log(`Call from column.tsx: Coupon redeemed: ${couponId}`);
-        // You can also add any additional logic here, like updating state or showing a toast
       };
 
       return (

@@ -34,42 +34,77 @@ import {
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { toast, useToast } from "@/hooks/use-toast";
+import router from "next/router";
+import { Coupon } from "./columns";
+import { RedeemForm } from "./redeem-coupon-form";
+import { formatCurrency } from "./utils";
 
-const formSchema = z.object({
+// Create a base schema with common fields
+const baseFormSchema = {
   id: z
     .string()
     .min(2)
     .transform((val) => val.toUpperCase()),
-  firstValue: z.number().min(1),
   employee: z.string().min(3),
+};
+
+// Create the full schema for the original use case
+const fullFormSchema = z.object({
+  ...baseFormSchema,
+  firstValue: z.number().min(1),
   location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges"]),
 });
 
-// Add prop type definition
+// Create the simplified schema for your new use case
+const simpleFormSchema = z.object({
+  ...baseFormSchema,
+  restValue: z.number().min(1),
+});
+
+// Update the props interface to include schema configuration
 interface ProfileFormProps {
+  setCreatedCoupon: (coupon: Coupon | null) => void;
   setDialogOpen: (open: boolean) => void;
+  useSimpleSchema?: boolean;
+  onSubmit?: (values: any) => Promise<void>;
+  setIsRedeemReady?: (ready: boolean) => void;
 }
 
-// Define your form data type (if using Zod)
-type FormData = z.infer<typeof formSchema>;
-
-export function ProfileForm({ setDialogOpen }: ProfileFormProps) {
+export function ProfileForm({
+  setCreatedCoupon,
+  setDialogOpen,
+  useSimpleSchema = false,
+  onSubmit,
+  setIsRedeemReady,
+}: ProfileFormProps) {
+  const formSchema = useSimpleSchema ? simpleFormSchema : fullFormSchema;
   const router = useRouter();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      id: "",
-      firstValue: undefined,
-      employee: "",
-      location: undefined,
-    },
+    defaultValues: useSimpleSchema
+      ? {
+          id: "",
+          employee: "",
+          restValue: undefined,
+        }
+      : {
+          id: "",
+          firstValue: undefined,
+          employee: "",
+          location: undefined,
+        },
     mode: "onSubmit",
   });
 
-  // Modified submit handler
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function handleSubmit(values: z.infer<typeof formSchema>) {
+    if (onSubmit) {
+      await onSubmit(values);
+      return;
+    }
+
     try {
-      // First check if ID exists
+      // 1. First, validate data (check if ID exists)
       const checkResponse = await fetch(
         `/api/coupons/check-id?id=${values.id}`
       );
@@ -83,53 +118,61 @@ export function ProfileForm({ setDialogOpen }: ProfileFormProps) {
         return;
       }
 
-      // If ID doesn't exist, proceed with creating the coupon
-      const response = await fetch("/api/coupons", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...values,
-          oldSystem: false,
-          description: "",
-          used: false,
-          restValue: values.firstValue || 0,
-        }),
-      });
+      // 2. Make the main API call
+      const response = await fetch(
+        useSimpleSchema ? "/api/coupons/old-coupon" : "/api/coupons",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...values,
+            oldSystem: useSimpleSchema,
+            description: "",
+            used: false,
+            restValue: useSimpleSchema
+              ? (values as z.infer<typeof simpleFormSchema>).restValue
+              : (values as z.infer<typeof fullFormSchema>).firstValue || 0,
+          }),
+        }
+      );
 
+      const data = await response.json();
       if (!response.ok) throw new Error("Failed to create coupon");
-      toast({
-        duration: 3000,
-        title: "Gutschein erstellt",
-        description: (
-          <span>
-            Der Gutschein <strong>{values.id}</strong> wurde erfolgreich
-            erstellt.
-          </span>
-        ),
-      });
+
+      // 3. Update UI state
+      setDialogOpen(false);
+
+      // 5. Update local state and data
+      if (useSimpleSchema) {
+        setCreatedCoupon(data.data.coupon);
+        setIsRedeemReady?.(true);
+      } else {
+        setIsRedeemReady?.(false);
+      }
+
+      // 6. Finally, refresh the page data
+      router.refresh();
     } catch (error) {
       console.error("Error creating coupon:", error);
-    } finally {
-      setDialogOpen(false);
-      router.refresh();
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Der Gutschein konnte nicht erstellt werden.",
+      });
     }
   }
 
-  // Properly type the onError function
-  function onError(errors: FieldErrors<FormData>) {
-    console.log("Form errors:", errors);
-  }
-
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit, onError)}
-        className="space-y-8">
-        <div className="grid grid-cols-2 gap-6">
-          {/* Left Column */}
-          <div className="space-y-4">
+    <>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)}>
+          <div
+            className={
+              useSimpleSchema
+                ? "grid grid-cols-3 gap-2"
+                : "grid grid-cols-2 gap-x-4 gap-y-2"
+            }>
+            {/* ID field always first */}
             <FormField
               control={form.control}
               name="id"
@@ -142,115 +185,174 @@ export function ProfileForm({ setDialogOpen }: ProfileFormProps) {
                   <FormControl>
                     <Input placeholder="EF1234" {...field} />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="firstValue"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel
-                    className={cn(fieldState.invalid && "text-red-500")}>
-                    Betrag
-                  </FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        placeholder="10,00"
-                        type="number"
-                        className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={(e) =>
-                          field.onChange(
-                            e.target.value ? Number(e.target.value) : null
-                          )
-                        }
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
-                        €
-                      </span>
-                    </div>
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+
+            {/* Conditionally render either restValue or the full form fields */}
+            {useSimpleSchema ? (
+              <>
+                {/* restValue field second */}
+                <FormField
+                  control={form.control}
+                  name="restValue"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormLabel
+                        className={cn(fieldState.invalid && "text-red-500")}>
+                        Betrag
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            placeholder="0,00"
+                            type="number"
+                            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value ? Number(e.target.value) : null
+                              )
+                            }
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                            €
+                          </span>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                {/* employee field third */}
+                <FormField
+                  control={form.control}
+                  name="employee"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormLabel
+                        className={cn(fieldState.invalid && "text-red-500")}>
+                        Mitarbeiter
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Name" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </>
+            ) : (
+              <>
+                <FormField
+                  control={form.control}
+                  name="employee"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormLabel
+                        className={cn(fieldState.invalid && "text-red-500")}>
+                        Mitarbeiter
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Name" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="firstValue"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormLabel
+                        className={cn(fieldState.invalid && "text-red-500")}>
+                        Betrag
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            placeholder="10,00"
+                            type="number"
+                            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value ? Number(e.target.value) : null
+                              )
+                            }
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                            €
+                          </span>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormLabel
+                        className={cn(fieldState.invalid && "text-red-500")}>
+                        Laden
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Wähle einen Laden" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Braugasse">Braugasse</SelectItem>
+                          <SelectItem value="Transit">Transit</SelectItem>
+                          <SelectItem value="Pit Stop">Pit Stop</SelectItem>
+                          <SelectItem value="Wirges">Wirges</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
           </div>
-
-          {/* Right Column */}
-
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="employee"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel
-                    className={cn(fieldState.invalid && "text-red-500")}>
-                    Mitarbeiter
-                  </FormLabel>
-                  <FormControl>
-                    <Input placeholder="Name" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel
-                    className={cn(fieldState.invalid && "text-red-500")}>
-                    Laden
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Wähle einen Laden" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Braugasse">Braugasse</SelectItem>
-                      <SelectItem value="Transit">Transit</SelectItem>
-                      <SelectItem value="Pit Stop">Pit Stop</SelectItem>
-                      <SelectItem value="Wirges">Wirges</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
+          <div className="flex justify-end mt-4">
+            <Button type="submit">Bestätigen</Button>
           </div>
-        </div>
-
-        <Button className="flex justify-self-end" type="submit">
-          Bestätigen
-        </Button>
-      </form>
-    </Form>
+        </form>
+      </Form>
+    </>
   );
 }
 
 const AddCoupon = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [createdCoupon, setCreatedCoupon] = useState<Coupon | null>(null);
 
   return (
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-      <DialogTrigger asChild>
-        <Button>Gutschein Erstellen</Button>
-      </DialogTrigger>
-      <DialogContent aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>Neu Gutschein</DialogTitle>
-          <Separator className="my-4" />
-        </DialogHeader>
-        <ProfileForm setDialogOpen={setDialogOpen} />
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogTrigger asChild>
+          <Button>Gutschein Erstellen</Button>
+        </DialogTrigger>
+        <DialogContent
+          className="p-4 gap-4 max-w-fit "
+          aria-describedby={undefined}>
+          <DialogHeader>
+            <DialogTitle>Neu Gutschein</DialogTitle>
+            <Separator className="my-4" />
+          </DialogHeader>
+
+          <ProfileForm
+            setDialogOpen={setDialogOpen}
+            setCreatedCoupon={setCreatedCoupon}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
