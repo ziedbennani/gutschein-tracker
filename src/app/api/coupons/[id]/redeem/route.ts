@@ -74,16 +74,17 @@ export async function PUT(
           couponId: id,
           employee: employee,
           description: newId
-            ? `Übertragung von ${id} zu ${newId}, ${usedValue} € eingelöst`
-            : `${usedValue} € eingelöst von ${employee}`,
+            ? `GUTSCHEIN WECHSEL: ${id} -> ${newId} | ${usedValue} € eingelöst`
+            : `${usedValue} € eingelöst`,
           oldSystem: currentCoupon.oldSystem,
           oldId: newId ? id : null,
           firstValue: currentCoupon.restValue,
           usedValue: usedValue,
-          restValue: newRestValue,
+          restValue: newRestValue > 0 ? newRestValue : 0,
           used: isNowUsed,
           location: location,
           tip: tip,
+          extraPayment: newRestValue < 0 ? Math.abs(newRestValue) : null,
         },
       });
       console.log("currentCoupon : ", currentCoupon);
@@ -106,7 +107,7 @@ export async function PUT(
           where: { id: id },
           data: {
             id: newId,
-            restValue: Math.max(0, newRestValue),
+            restValue: newRestValue > 0 ? newRestValue : 0,
             usedValue: newUsedValue,
             employee: employee,
             location: location,
@@ -114,6 +115,7 @@ export async function PUT(
             updatedAt: new Date(),
             oldId: id,
             tip: tip,
+            extraPayment: newRestValue < 0 ? Math.abs(newRestValue) : null,
           },
         });
 
@@ -127,7 +129,7 @@ export async function PUT(
         const updatedCoupon = await tx.coupon.update({
           where: { id: id },
           data: {
-            restValue: Math.max(0, newRestValue),
+            restValue: newRestValue > 0 ? newRestValue : 0,
             usedValue: newUsedValue,
             description: `${usedValue} € eingelöst von ${employee}`,
             employee: employee,
@@ -135,6 +137,7 @@ export async function PUT(
             used: isNowUsed,
             updatedAt: new Date(),
             tip: tip,
+            extraPayment: newRestValue < 0 ? Math.abs(newRestValue) : null,
           },
         });
         console.log("updatedCoupon else : ", updatedCoupon);

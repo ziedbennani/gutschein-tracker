@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     const coupon = await prisma.coupon.create({
       data: {
         ...data,
-        description: `${data.firstValue} € Gutschein erstellt von ${data.employee}`,
+        description: `NEU GUTSCHEIN ! `,
       },
     });
     console.log("coupon created :", coupon);

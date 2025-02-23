@@ -338,6 +338,7 @@ export function RedeemForm<TData>({
               />
             ) : (
               <Button
+                // style={{ width: "139.25px" }}
                 variant="secondary"
                 className="bg-[#FDC30A] hover:bg-[#e3af09] text-black"
                 type="button"

@@ -140,12 +140,11 @@ export function ProfileForm({
       if (!response.ok) throw new Error("Failed to create coupon");
 
       // 3. Update UI state
-      setDialogOpen(false);
+      // setDialogOpen(false);
 
       // 5. Update local state and data
       if (useSimpleSchema) {
         setCreatedCoupon(data.data.coupon);
-        setIsRedeemReady?.(true);
       } else {
         setIsRedeemReady?.(false);
       }
@@ -320,7 +319,16 @@ export function ProfileForm({
             )}
           </div>
           <div className="flex justify-end mt-4">
-            <Button type="submit">Bestätigen</Button>
+            <Button
+              type="submit"
+              onClick={() => {
+                setDialogOpen(false);
+                if (useSimpleSchema) {
+                  setIsRedeemReady?.(true);
+                }
+              }}>
+              Bestätigen
+            </Button>
           </div>
         </form>
       </Form>

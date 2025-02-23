@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const coupon = await prisma.coupon.create({
       data: {
         ...data,
-        description: `Alten Gutscheins Nr ${data.id} mit ${data.restValue} € hinzugefügt`,
+        description: `ALTER GUTSCHEIN !`,
       },
     });
     console.log("old coupon created :", coupon);
