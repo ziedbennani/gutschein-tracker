@@ -4,9 +4,9 @@ import { prisma } from "../../../../../../lib/db";
 // This handles PUT requests to /api/coupons/[id]/redeem
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = context.params;
+  const id = params.id;
   try {
     console.log("Processing request for coupon:", id);
 
