@@ -73,7 +73,6 @@ interface ProfileFormProps {
 
 export function ProfileForm({
   setCreatedCoupon,
-  createdCoupon,
   setDialogOpen,
   useSimpleSchema = false,
   onSubmit,

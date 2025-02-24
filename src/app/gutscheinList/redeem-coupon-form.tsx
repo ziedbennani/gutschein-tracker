@@ -12,7 +12,6 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import confetti from "canvas-confetti";
-import { Table } from "@tanstack/react-table";
 
 import {
   Select,
@@ -40,7 +39,7 @@ const formSchema = z.object({
     .transform((val) => val?.toUpperCase()),
 });
 
-interface RedeemFormProps<TData> {
+interface RedeemFormProps {
   coupon: Coupon;
   setDialogOpen: (open: boolean) => void;
   onCouponRedeemed?: (couponId: string) => void;
@@ -56,7 +55,7 @@ export function RedeemForm<TData>({
   setDialogOpen,
   onCouponRedeemed,
   setIsRedeemReady,
-}: RedeemFormProps<TData>) {
+}: RedeemFormProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [isFormSubmitted, setFormSubmitted] = useState(false);
