@@ -4,7 +4,11 @@ import { prisma } from "../../../../../../lib/db";
 // This handles PUT requests to /api/coupons/[id]/redeem
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  {
+    params,
+  }: { params: { id: string } } & {
+    searchParams: { [key: string]: string | string[] | undefined };
+  }
 ) {
   const { id } = await params;
   try {
