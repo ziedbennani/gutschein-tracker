@@ -102,6 +102,10 @@ export function ProfileForm({
       await onSubmit(values);
       return;
     }
+    if (useSimpleSchema) {
+      setDialogOpen(false);
+      setIsRedeemReady?.(true);
+    }
 
     try {
       // 1. First, validate data (check if ID exists)
@@ -319,16 +323,7 @@ export function ProfileForm({
             )}
           </div>
           <div className="flex justify-end mt-4">
-            <Button
-              type="submit"
-              onClick={() => {
-                setDialogOpen(false);
-                if (useSimpleSchema) {
-                  setIsRedeemReady?.(true);
-                }
-              }}>
-              Bestätigen
-            </Button>
+            <Button type="submit">Bestätigen</Button>
           </div>
         </form>
       </Form>
