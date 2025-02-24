@@ -2,15 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../../lib/db";
 
 // This handles PUT requests to /api/coupons/[id]/redeem
-export async function handler(
+export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
-  if (request.method !== "PUT") {
-    return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
-  }
-
-  const { id } = context.params;
+  const { id } = params;
   try {
     console.log("Processing request for coupon:", id);
 
