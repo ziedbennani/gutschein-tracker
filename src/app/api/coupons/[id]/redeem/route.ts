@@ -3,9 +3,9 @@ import { prisma } from "../../../../../../lib/db";
 
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: any } }
+  context: { params: { id: string } }
 ) {
-  const id = context.params.id;
+  const { id } = context.params;
 
   try {
     // Get the request body
