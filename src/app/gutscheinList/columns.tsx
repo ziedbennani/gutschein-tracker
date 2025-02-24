@@ -5,18 +5,14 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogOverlay,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { ProfileForm } from "./add-coupon";
 
 import { useEffect, useState } from "react";
 import { RedeemForm } from "./redeem-coupon-form";
 import { formatCurrency } from "./utils";
-import { set } from "zod";
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.

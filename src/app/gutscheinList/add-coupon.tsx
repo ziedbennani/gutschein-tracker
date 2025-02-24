@@ -3,7 +3,7 @@
 import React from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, FieldErrors } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -12,13 +12,11 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -33,11 +31,9 @@ import {
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { toast, useToast } from "@/hooks/use-toast";
-import router from "next/router";
+import { toast } from "@/hooks/use-toast";
 import { Coupon } from "./columns";
-import { RedeemForm } from "./redeem-coupon-form";
-import { formatCurrency } from "./utils";
+// import { formatCurrency } from "./utils";
 
 // Create a base schema with common fields
 const baseFormSchema = {
@@ -62,16 +58,22 @@ const simpleFormSchema = z.object({
 });
 
 // Update the props interface to include schema configuration
+type FormValues =
+  | z.infer<typeof fullFormSchema>
+  | z.infer<typeof simpleFormSchema>;
+
 interface ProfileFormProps {
-  setCreatedCoupon: (coupon: Coupon | null) => void;
+  setCreatedCoupon?: (coupon: Coupon | null) => void;
   setDialogOpen: (open: boolean) => void;
   useSimpleSchema?: boolean;
-  onSubmit?: (values: any) => Promise<void>;
+  onSubmit?: (values: FormValues) => Promise<void>;
   setIsRedeemReady?: (ready: boolean) => void;
+  createdCoupon?: Coupon | null;
 }
 
 export function ProfileForm({
   setCreatedCoupon,
+  createdCoupon,
   setDialogOpen,
   useSimpleSchema = false,
   onSubmit,
@@ -144,11 +146,11 @@ export function ProfileForm({
       if (!response.ok) throw new Error("Failed to create coupon");
 
       // 3. Update UI state
-      // setDialogOpen(false);
+      setDialogOpen(false);
 
       // 5. Update local state and data
       if (useSimpleSchema) {
-        setCreatedCoupon(data.data.coupon);
+        setCreatedCoupon?.(data.data.coupon);
       } else {
         setIsRedeemReady?.(false);
       }
@@ -352,6 +354,7 @@ const AddCoupon = () => {
           <ProfileForm
             setDialogOpen={setDialogOpen}
             setCreatedCoupon={setCreatedCoupon}
+            createdCoupon={createdCoupon}
           />
         </DialogContent>
       </Dialog>

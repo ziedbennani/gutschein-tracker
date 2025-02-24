@@ -9,7 +9,7 @@ export async function PUT(
   try {
     const couponId = params.id;
     const data = await request.json();
-    const { usedValue, employee, location, tip, newId } = data;
+    const { usedValue, employee, location, newId } = data;
 
     // Fetch the current coupon data
     const currentCoupon = await prisma.coupon.findUnique({

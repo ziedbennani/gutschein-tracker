@@ -10,7 +10,6 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
 import confetti from "canvas-confetti";
 import { Table } from "@tanstack/react-table";
@@ -46,7 +45,10 @@ interface RedeemFormProps<TData> {
   setDialogOpen: (open: boolean) => void;
   onCouponRedeemed?: (couponId: string) => void;
   setIsRedeemReady?: (ready: boolean) => void;
-  table?: Table<TData>;
+}
+
+interface FieldType {
+  value: number | null | undefined;
 }
 
 export function RedeemForm<TData>({
@@ -54,7 +56,6 @@ export function RedeemForm<TData>({
   setDialogOpen,
   onCouponRedeemed,
   setIsRedeemReady,
-  table,
 }: RedeemFormProps<TData>) {
   const { toast } = useToast();
   const router = useRouter();
@@ -132,7 +133,7 @@ export function RedeemForm<TData>({
     }
   }
 
-  const remainingAmount = (field: any) => {
+  const remainingAmount = (field: FieldType) => {
     if (
       field.value === undefined ||
       field.value === null ||
@@ -144,7 +145,7 @@ export function RedeemForm<TData>({
     return Math.abs(remaining).toFixed(2);
   };
 
-  const isPositiveBalance = (field: any) => {
+  const isPositiveBalance = (field: FieldType) => {
     if (
       field.value === undefined ||
       field.value === null ||
