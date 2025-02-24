@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../../lib/db";
 
 // This handles PUT requests to /api/coupons/[id]/redeem
 export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: { id: string } }
 ) {
-  const id = params.id;
+  const id = context.params.id;
 
   try {
     // Get the request body
@@ -32,7 +32,7 @@ export async function PUT(
 
     // Fetch the current coupon data
     const currentCoupon = await prisma.coupon.findUnique({
-      where: { id: id },
+      where: { id },
     });
     console.log("currentCoupon : ", currentCoupon);
     if (!currentCoupon) {
@@ -83,7 +83,7 @@ export async function PUT(
 
         // Update coupon with new ID and other values
         const updatedCoupon = await tx.coupon.update({
-          where: { id: id },
+          where: { id },
           data: {
             id: newId,
             restValue: newRestValue > 0 ? newRestValue : 0,
@@ -106,7 +106,7 @@ export async function PUT(
         // Regular update without changing ID
         console.log("else");
         const updatedCoupon = await tx.coupon.update({
-          where: { id: id },
+          where: { id },
           data: {
             restValue: newRestValue > 0 ? newRestValue : 0,
             usedValue: newUsedValue,
