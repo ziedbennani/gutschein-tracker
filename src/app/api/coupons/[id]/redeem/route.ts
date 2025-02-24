@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../../lib/db";
 
-export async function PUT(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
+interface RouteContext {
+  params: {
+    id: string;
+  };
+}
+
+// This handles PUT requests to /api/coupons/[id]/redeem
+export async function PUT(request: NextRequest, context: RouteContext) {
   const { id } = context.params;
 
   try {
