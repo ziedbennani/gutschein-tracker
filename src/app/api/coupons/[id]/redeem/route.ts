@@ -1,37 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "../../../../../../lib/db";
 
 // This handles PUT requests to /api/coupons/[id]/redeem
 export async function PUT(
-  request: NextRequest,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   const id = params.id;
+
   try {
-    console.log("Processing request for coupon:", id);
-
-    // Safely parse the request body
-    let data;
-    try {
-      const text = await request.text(); // First get the raw text
-      console.log("Raw request body:", text);
-
-      if (!text) {
-        return NextResponse.json(
-          { error: "Empty request body" },
-          { status: 400 }
-        );
-      }
-
-      data = JSON.parse(text); // Then parse it as JSON
-      console.log("Parsed data:", data);
-    } catch (parseError) {
-      console.error("Failed to parse request body:", parseError);
-      return NextResponse.json(
-        { error: "Invalid JSON in request body" },
-        { status: 400 }
-      );
-    }
+    // Get the request body
+    const data = await request.json();
 
     // Validate the parsed data
     if (!data || typeof data !== "object") {
