@@ -4,9 +4,9 @@ import { prisma } from "../../../../../../lib/db";
 // This handles PUT requests to /api/coupons/[id]/redeem
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  const id = (await context.params).id;
   // Get the request body
   const data = await request.json();
   try {
