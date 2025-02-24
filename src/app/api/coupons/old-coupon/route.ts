@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../../lib/db";
+import { revalidatePath } from "next/cache";
 
 export async function POST(request: Request) {
   try {
@@ -12,12 +13,23 @@ export async function POST(request: Request) {
       },
     });
     console.log("old coupon created :", coupon);
-    return NextResponse.json({
-      success: true,
-      data: {
-        coupon: coupon,
+
+    // Revalidate the coupons list page after creating an old coupon
+    revalidatePath("/gutscheinList");
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          coupon: coupon,
+        },
       },
-    });
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      }
+    );
   } catch (error) {
     // Log the full error
     console.error("Full error:", JSON.stringify(error, null, 2));
