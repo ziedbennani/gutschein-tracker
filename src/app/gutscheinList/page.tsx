@@ -7,7 +7,9 @@ export const revalidate = 0; // Disable cache
 export default async function DemoPage() {
   try {
     // Fetch coupons from the API endpoint instead of directly from Prisma
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      "https://gutschein-tracker.vercel.app/";
     const response = await fetch(`${baseUrl}/api/coupons`, {
       cache: "no-store",
       next: { revalidate: 0 },
