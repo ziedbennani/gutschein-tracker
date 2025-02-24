@@ -5,10 +5,9 @@ import { prisma } from "../../../../../../lib/db";
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-
+): Promise<NextResponse> {
   try {
+    const { id } = await params;
     // Get the request body
     const data = await request.json();
 
