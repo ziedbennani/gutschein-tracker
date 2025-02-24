@@ -50,7 +50,7 @@ interface FieldType {
   value: number | null | undefined;
 }
 
-export function RedeemForm<TData>({
+export function RedeemForm({
   coupon,
   setDialogOpen,
   onCouponRedeemed,
