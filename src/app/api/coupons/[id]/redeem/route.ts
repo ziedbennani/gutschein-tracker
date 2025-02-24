@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../../lib/db";
-import { use } from "react";
 
 // This handles PUT requests to /api/coupons/[id]/redeem
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+  // Get the request body
+  const data = await request.json();
   try {
-    const { id } = use(params);
-    // Get the request body
-    const data = await request.json();
-
     // Validate the parsed data
     if (!data || typeof data !== "object") {
       return NextResponse.json(
