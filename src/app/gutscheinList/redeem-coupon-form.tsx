@@ -11,7 +11,6 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import confetti from "canvas-confetti";
 
 import {
   Select,
@@ -92,7 +91,7 @@ export function RedeemForm({
       setIsRedeemReady?.(false);
       setCreatedCoupon?.(null);
 
-      // 3. Show success feedback (toast and confetti)
+      // 3. Show success feedback
       toast({
         duration: 3000,
         title: "Gutschein eingelöst",
