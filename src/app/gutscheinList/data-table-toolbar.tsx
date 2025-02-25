@@ -5,16 +5,26 @@ import { Table } from "@tanstack/react-table";
 import { Button } from "./../../components/ui/button";
 import { Input } from "./../../components/ui/input";
 import AddCoupon from "./add-coupon";
+import { useEffect } from "react";
+import { Coupon } from "./columns";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   data: TData[];
+  createdCoupon: Coupon | null;
 }
 
 export function DataTableToolbar<TData>({
   table,
+  createdCoupon,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
+
+  useEffect(() => {
+    if (createdCoupon === null) {
+      table.resetColumnFilters();
+    }
+  }, [table, createdCoupon]);
 
   return (
     <div className="flex items-center my-4">

@@ -36,17 +36,12 @@ import {
 import React from "react";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { formatCurrency } from "./utils";
+import { Icons } from "@/components/icons";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
-
-// interface oldCoupon {
-//   id: string;
-//   restValue: number;
-
-// }
 
 export function DataTable<TData, TValue>({
   columns,
@@ -83,10 +78,18 @@ export function DataTable<TData, TValue>({
     console.log("isRedeemReady[data-table.tsx] changed to: ", isRedeemReady);
   }, [isRedeemReady]);
 
+  useEffect(() => {
+    console.log("createdCoupon[data-table.tsx] changed to: ", createdCoupon);
+  }, [createdCoupon]);
+
   return (
     <div>
       <div className="flex items-center py-4">
-        <DataTableToolbar table={table} data={data} />
+        <DataTableToolbar
+          table={table}
+          data={data}
+          createdCoupon={createdCoupon}
+        />
       </div>
       <div className="rounded-md border">
         <Table>
@@ -140,6 +143,7 @@ export function DataTable<TData, TValue>({
                     open={isOldCouponDialogOpen}
                     onOpenChange={setIsOldCouponDialogOpen}>
                     <DialogContent
+                      onPointerDownOutside={(e) => e.preventDefault()}
                       className="p-5 gap-5"
                       aria-describedby={undefined}>
                       <DialogHeader>
@@ -154,41 +158,62 @@ export function DataTable<TData, TValue>({
                       />
                     </DialogContent>
                   </Dialog>
-                  {isRedeemReady && createdCoupon && (
+                  {/* {isRedeemReady && !showRedeemDialog && (
+                    <Icons.spinner className="mr-2 h-8 w-8 animate-spin" />
+                  )} */}
+
+                  {isRedeemReady && (
                     <Dialog
                       open={isRedeemReady}
                       onOpenChange={setIsRedeemReady}>
-                      <DialogContent
-                        className="flex p-4 gap-12 max-w-fit mx-auto"
-                        aria-describedby={undefined}>
-                        <div className="flex-1">
-                          <DialogHeader>
-                            <DialogTitle>
-                              <div className="flex justify-around">
-                                <span className="text-sm font-medium">
-                                  Gutschein{" "}
-                                  <span className="text-base font-bold">
-                                    {createdCoupon.id}
+                      {isRedeemReady && createdCoupon != null ? (
+                        <DialogContent
+                          className="flex p-4 gap-12 max-w-fit mx-auto"
+                          onPointerDownOutside={(e) => e.preventDefault()}
+                          aria-describedby={undefined}>
+                          <div className="flex-1">
+                            <DialogHeader>
+                              <DialogTitle>
+                                <div className="flex justify-around">
+                                  <span className="text-sm font-medium">
+                                    Gutschein{" "}
+                                    <span className="text-base font-bold">
+                                      {createdCoupon.id}
+                                    </span>
                                   </span>
-                                </span>
-                                <span className="text-sm font-medium">
-                                  Betrag{" "}
-                                  <span className="text-base font-bold">
-                                    {formatCurrency(createdCoupon.restValue)}{" "}
+                                  <span className="text-sm font-medium">
+                                    Betrag{" "}
+                                    <span className="text-base font-bold">
+                                      {formatCurrency(createdCoupon.restValue)}{" "}
+                                    </span>
                                   </span>
-                                </span>
-                              </div>
-                              <Separator className="my-3" />
-                            </DialogTitle>
-                          </DialogHeader>
-                          <RedeemForm
-                            coupon={createdCoupon}
-                            setDialogOpen={setIsOldCouponDialogOpen}
-                            onCouponRedeemed={() => {}}
-                            setIsRedeemReady={setIsRedeemReady}
-                          />
-                        </div>
-                      </DialogContent>
+                                </div>
+                                <Separator className="my-3" />
+                              </DialogTitle>
+                            </DialogHeader>
+                            <RedeemForm
+                              coupon={createdCoupon}
+                              setDialogOpen={setIsOldCouponDialogOpen}
+                              onCouponRedeemed={() => {}}
+                              setIsRedeemReady={setIsRedeemReady}
+                              setCreatedCoupon={setCreatedCoupon}
+                            />
+                          </div>
+                        </DialogContent>
+                      ) : (
+                        <DialogContent
+                          className="flex p-4 [&>button]:hidden"
+                          style={{ width: "518.84px", height: "300.75px" }}
+                          onPointerDownOutside={(e) => e.preventDefault()}
+                          aria-describedby={undefined}>
+                          <div className="flex-1 flex items-center justify-center">
+                            <DialogHeader>
+                              <DialogTitle></DialogTitle>
+                            </DialogHeader>
+                            <Icons.spinner className="h-12 w-12 animate-spin" />
+                          </div>
+                        </DialogContent>
+                      )}
                     </Dialog>
                   )}
                 </TableCell>

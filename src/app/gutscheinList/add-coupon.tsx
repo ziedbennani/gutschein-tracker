@@ -343,6 +343,7 @@ const AddCoupon = () => {
           <Button>Gutschein Erstellen</Button>
         </DialogTrigger>
         <DialogContent
+          onPointerDownOutside={(e) => e.preventDefault()}
           className="p-4 gap-4 max-w-fit "
           aria-describedby={undefined}>
           <DialogHeader>

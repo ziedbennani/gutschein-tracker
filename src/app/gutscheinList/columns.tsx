@@ -48,6 +48,7 @@ const RedeemCouponDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
+        onPointerDownOutside={(e) => e.preventDefault()}
         className="flex p-4 gap-12 max-w-fit mx-auto"
         aria-describedby={undefined}>
         <div className="flex-1">

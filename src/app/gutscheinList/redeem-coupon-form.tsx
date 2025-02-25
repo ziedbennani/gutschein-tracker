@@ -44,6 +44,7 @@ interface RedeemFormProps {
   setDialogOpen: (open: boolean) => void;
   onCouponRedeemed?: (couponId: string) => void;
   setIsRedeemReady?: (ready: boolean) => void;
+  setCreatedCoupon?: (coupon: Coupon | null) => void;
 }
 
 interface FieldType {
@@ -55,6 +56,7 @@ export function RedeemForm({
   setDialogOpen,
   onCouponRedeemed,
   setIsRedeemReady,
+  setCreatedCoupon,
 }: RedeemFormProps) {
   const { toast } = useToast();
   const router = useRouter();
@@ -88,6 +90,7 @@ export function RedeemForm({
       // 2. Update UI state (close dialogs, reset forms)
       setDialogOpen(false);
       setIsRedeemReady?.(false);
+      setCreatedCoupon?.(null);
 
       // 3. Show success feedback (toast and confetti)
       toast({
@@ -99,22 +102,6 @@ export function RedeemForm({
             erfolgreich eingelöst.
           </span>
         ),
-      });
-
-      confetti({
-        angle: 90,
-        origin: { y: 0.7 },
-        colors: [
-          "#28AFFA",
-          "#054a91",
-          "#fff952",
-          "#FDC30A",
-          "#e71d36",
-          "#fd5da5",
-        ],
-        particleCount: 700,
-        spread: 90,
-        gravity: 0.5,
       });
 
       // 4. Update data and trigger rerenders
