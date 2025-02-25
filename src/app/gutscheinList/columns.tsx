@@ -48,8 +48,8 @@ const RedeemCouponDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
-        onPointerDownOutside={(e) => e.preventDefault()}
         className="flex p-4 gap-12 max-w-fit mx-auto"
+        onPointerDownOutside={(e) => e.preventDefault()}
         aria-describedby={undefined}>
         <div className="flex-1">
           <DialogHeader>
@@ -118,17 +118,26 @@ export const columns: ColumnDef<Coupon>[] = [
     header: "letzte Änderung",
     cell: (row) => {
       const dateValue = row.getValue() as string;
-      const options: Intl.DateTimeFormatOptions = {
+      const FirstOptions: Intl.DateTimeFormatOptions = {
         weekday: "long",
         year: "numeric",
         month: "long",
         day: "numeric",
       };
-      const formattedDate = new Intl.DateTimeFormat("de-DE", options).format(
-        new Date(dateValue)
-      );
+      const SecondOptions: Intl.DateTimeFormatOptions = {
+        hour: "2-digit",
+        minute: "2-digit",
+      };
+      const formattedDate = new Intl.DateTimeFormat(
+        "de-DE",
+        FirstOptions
+      ).format(new Date(dateValue));
+      const formattedTime = new Intl.DateTimeFormat(
+        "de-DE",
+        SecondOptions
+      ).format(new Date(dateValue));
 
-      return formattedDate; // Format the date as needed
+      return `${formattedDate} - ${formattedTime}`; // Format the date as needed
     },
   },
   {
