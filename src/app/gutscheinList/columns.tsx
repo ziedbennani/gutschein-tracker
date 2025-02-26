@@ -49,7 +49,7 @@ const RedeemCouponDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
-        className="flex flex-col p-4 gap-6 max-w-[95vw] w-full mx-auto mt-1 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
+        className="flex flex-col p-4 gap-6 max-w-[95vw] w-full mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
         onPointerDownOutside={(e) => e.preventDefault()}
         aria-describedby={undefined}>
         <div className="flex-1">

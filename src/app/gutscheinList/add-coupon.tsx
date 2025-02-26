@@ -344,7 +344,7 @@ const AddCoupon = () => {
         </DialogTrigger>
         <DialogContent
           onPointerDownOutside={(e) => e.preventDefault()}
-          className="p-4 gap-4 max-w-[95vw] w-full mx-auto mt-1 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
+          className="p-4 gap-4 max-w-[95vw] w-full mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
           aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Neu Gutschein</DialogTitle>

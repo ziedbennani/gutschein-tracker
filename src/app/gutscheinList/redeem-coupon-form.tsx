@@ -28,7 +28,7 @@ import { useState } from "react";
 
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
-// import { Icons } from "@/components/icons";
+import { Icons } from "@/components/icons";
 
 const formSchema = z.object({
   usedValue: z.number().min(0.9, "Betrag muss größer als 0,90 € sein"),
@@ -63,7 +63,8 @@ export function RedeemForm({
   const { toast } = useToast();
   const router = useRouter();
   const [isFormSubmitted, setFormSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -94,12 +95,13 @@ export function RedeemForm({
       setDialogOpen(false);
       setIsRedeemReady?.(false);
       setCreatedCoupon?.(null);
-      setIsLoading(false);
+      // setIsLoading(false);
 
       // 3. Show success feedback
       toast({
-        duration: 3000,
+        duration: 10000,
         title: "Gutschein eingelöst",
+        variant: "success",
         description: (
           <span>
             Der Gutschein <strong>{values.newId || coupon.id}</strong> wurde
@@ -312,14 +314,16 @@ export function RedeemForm({
                   </Button>
                 )}
 
-                {!isLoading ? (
+                {!isConfirming ? (
                   <Button
                     // style={{ width: "139.25px" }}
                     type="button"
                     className="bg-[#FDC30A] hover:bg-[#e3af09] text-black"
                     disabled={!form.formState.isValid}
-                    onClick={() => {
-                      setIsLoading(true);
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsConfirming(true);
                     }}>
                     Bestätigen
                   </Button>
@@ -327,7 +331,13 @@ export function RedeemForm({
                   <Button
                     // style={{ width: "139.25px" }}
                     className="bg-[#FDC30A] hover:bg-[#e3af09] text-black"
-                    type="submit">
+                    type="button"
+                    onClick={() => {
+                      // setIsLoading(true);
+                      setIsConfirming(false);
+                      setDialogOpen(false);
+                      form.handleSubmit(onSubmit)();
+                    }}>
                     Einlösen
                   </Button>
                 )}
@@ -335,7 +345,7 @@ export function RedeemForm({
             </div>
           </div>
         </form>
-        {isLoading && (
+        {isConfirming && (
           <div
             className="flex flex-col items-center mt-4"
             style={{
@@ -353,32 +363,9 @@ export function RedeemForm({
           </div>
         )}
       </Form>
-      {/* {isLoading && (
-        <div className="mt-4">
-          <AlertDialog open={true} onOpenChange={setIsLoading}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Gutschein einlösen?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Bitte nochmal überprüfen, ob alle Informationen korrekt sind.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => form.handleSubmit(onSubmit)()}>
-                  Einlösen
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )} */}
-      {/* {isLoading && (
-        <div className="flex justify-center items-center">
-          <Icons.spinner className="h-12 w-12 animate-spin" />
-        </div>
-      )} */}
+      {/* <div className="flex justify-center items-center">
+      <Icons.spinner className="h-12 w-12 animate-spin" />
+      </div> */}
     </>
   );
 }
