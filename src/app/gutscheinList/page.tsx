@@ -23,7 +23,7 @@ export default async function DemoPage() {
     const data = result.data || [];
 
     return (
-      <div className="container mx-auto py-20">
+      <div className="container mx-auto py-8">
         <DataTable columns={columns} data={data} />
       </div>
     );
