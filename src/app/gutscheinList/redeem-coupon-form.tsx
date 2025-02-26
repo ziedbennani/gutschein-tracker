@@ -19,6 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogFooter,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { Coupon } from "./columns";
@@ -26,6 +36,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 import { useToast } from "@/hooks/use-toast";
+import { Icons } from "@/components/icons";
 
 const formSchema = z.object({
   usedValue: z.number().min(0.9, "Betrag muss größer als 0,90 € sein"),
@@ -60,6 +71,7 @@ export function RedeemForm({
   const { toast } = useToast();
   const router = useRouter();
   const [isFormSubmitted, setFormSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -87,8 +99,10 @@ export function RedeemForm({
       }
 
       // 2. Update UI state (close dialogs, reset forms)
+      setDialogOpen(false);
       setIsRedeemReady?.(false);
       setCreatedCoupon?.(null);
+      setIsLoading(false);
 
       // 3. Show success feedback
       toast({
@@ -336,13 +350,50 @@ export function RedeemForm({
 
             <Button
               // style={{ width: "139.25px" }}
-              type="submit"
-              onClick={() => setDialogOpen(false)}>
+              type="button"
+              disabled={
+                !form.formState.isValid ||
+                Object.keys(form.formState.dirtyFields).length === 0
+              }
+              onClick={() => {
+                setIsLoading(true);
+              }}>
               Bestätigen
             </Button>
           </div>
         </form>
       </Form>
+      {isLoading && (
+        <AlertDialog open={true} onOpenChange={setIsLoading}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Gutschein einlösen?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Bitte nochmal überprüfen, ob alle Informationen korrekt sind.
+                {/* <br />
+                Nummer: {coupon.id}
+                <br />
+                Betrag: {coupon.restValue}
+                <br />
+                Eingelöster Betrag: {form.getValues("usedValue")}
+                <br />
+                Mitarbeiter: {form.getValues("employee")}
+                <br />
+                Laden: {form.getValues("location")} */}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+              <AlertDialogAction>Einlösen</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+      {/* {isLoading && (
+        <div className="flex justify-center items-center">
+          <Icons.spinner className="h-12 w-12 animate-spin" />
+        </div>
+      )} */}
     </>
   );
 }

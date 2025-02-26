@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
 import { Separator } from "@/components/ui/separator";
 
 import { useEffect, useState } from "react";
@@ -48,7 +49,7 @@ const RedeemCouponDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
-        className="flex p-4 gap-12 max-w-fit mx-auto"
+        className="flex p-4 gap-12 max-w-fit mx-auto mt-1 top-0 translate-y-0"
         onPointerDownOutside={(e) => e.preventDefault()}
         aria-describedby={undefined}>
         <div className="flex-1">
@@ -69,6 +70,7 @@ const RedeemCouponDialog = ({
               <Separator className="my-3" />
             </DialogTitle>
           </DialogHeader>
+
           <RedeemForm
             coupon={coupon}
             setDialogOpen={setIsOpen}
