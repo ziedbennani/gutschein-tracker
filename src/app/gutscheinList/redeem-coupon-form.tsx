@@ -87,7 +87,6 @@ export function RedeemForm({
       }
 
       // 2. Update UI state (close dialogs, reset forms)
-      setDialogOpen(false);
       setIsRedeemReady?.(false);
       setCreatedCoupon?.(null);
 
@@ -337,7 +336,8 @@ export function RedeemForm({
 
             <Button
               // style={{ width: "139.25px" }}
-              type="submit">
+              type="submit"
+              onClick={() => setDialogOpen(false)}>
               Bestätigen
             </Button>
           </div>
