@@ -281,7 +281,7 @@ export function RedeemForm({
                   )}
                 />
               </div>
-              <div className="flex mt-auto gap-2">
+              <div className="flex mt-auto gap-2 items-end">
                 {isFormSubmitted ? (
                   <FormField
                     control={form.control}
@@ -319,18 +319,19 @@ export function RedeemForm({
                     // style={{ width: "139.25px" }}
                     type="button"
                     className="bg-[#FDC30A] hover:bg-[#e3af09] text-black"
-                    disabled={!form.formState.isValid}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsConfirming(true);
+                    onClick={async () => {
+                      // Trigger validation on all fields
+                      const isValid = await form.trigger();
+                      if (isValid) {
+                        setIsConfirming(true);
+                      }
                     }}>
                     Bestätigen
                   </Button>
                 ) : (
                   <Button
                     // style={{ width: "139.25px" }}
-                    className="bg-[#FDC30A] hover:bg-[#e3af09] text-black"
+                    className="bg-[#FDC30A] hover:bg-[#e3af09] text-black contrast-125"
                     type="button"
                     onClick={() => {
                       // setIsLoading(true);
