@@ -19,16 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogCancel,
-  AlertDialogFooter,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
+
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { Coupon } from "./columns";
@@ -36,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 import { useToast } from "@/hooks/use-toast";
+import { Label } from "@/components/ui/label";
 // import { Icons } from "@/components/icons";
 
 const formSchema = z.object({
@@ -213,30 +205,31 @@ export function RedeemForm({
                   </FormItem>
                 )}
               />
-
-              {/* Tip checkbox - commented out but kept for reference */}
-              {/* <FormField
+              <FormField
                 control={form.control}
                 name="tip"
                 render={({ field, fieldState }) => (
-                  <FormItem className="flex items-center space-x-2 mt-2">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                    </FormControl>
+                  <FormItem className="flex flex-col mt-4">
                     <FormLabel
-                      className={cn(
-                        fieldState.invalid && "text-red-500",
-                        "text-sm font-medium"
-                      )}>
-                      als Trinkgeld
+                      className={cn(fieldState.invalid && "text-red-500")}>
+                      Trinkgeld
                     </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          // style={{ width: "139.25px" }}
+                          placeholder="0,00"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                          €
+                        </span>
+                      </div>
+                    </FormControl>
                   </FormItem>
                 )}
-              /> */}
+              />
             </div>
 
             {/* Right Column */}
@@ -286,109 +279,101 @@ export function RedeemForm({
                   )}
                 />
               </div>
+              <div className="flex mt-auto gap-2">
+                {isFormSubmitted ? (
+                  <FormField
+                    control={form.control}
+                    name="newId"
+                    render={({ field, fieldState }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel
+                          className={cn(fieldState.invalid && "text-red-500")}>
+                          Neue Nummer
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            style={{ width: "139.25px" }}
+                            placeholder="EF1234"
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <Button
+                    // style={{ width: "139.25px" }}
+                    variant="default"
+                    type="button"
+                    onClick={() => {
+                      setFormSubmitted(true);
+                    }}>
+                    Gutschein Voll ?
+                  </Button>
+                )}
+
+                {!isLoading ? (
+                  <Button
+                    // style={{ width: "139.25px" }}
+                    type="button"
+                    className="bg-[#FDC30A] hover:bg-[#e3af09] text-black"
+                    disabled={!form.formState.isValid}
+                    onClick={() => {
+                      setIsLoading(true);
+                    }}>
+                    Bestätigen
+                  </Button>
+                ) : (
+                  <Button
+                    // style={{ width: "139.25px" }}
+                    className="bg-[#FDC30A] hover:bg-[#e3af09] text-black"
+                    type="submit">
+                    Einlösen
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
-          <div className="flex justify-evenly items-end mt-4 gap-4">
-            <FormField
-              control={form.control}
-              name="tip"
-              render={({ field, fieldState }) => (
-                <FormItem className="flex flex-col ">
-                  <FormLabel
-                    className={cn(fieldState.invalid && "text-red-500")}>
-                    Trinkgeld
-                  </FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        // style={{ width: "139.25px" }}
-                        placeholder="0,00"
-                        {...field}
-                        value={field.value ?? ""}
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
-                        €
-                      </span>
-                    </div>
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            {isFormSubmitted ? (
-              <FormField
-                control={form.control}
-                name="newId"
-                render={({ field, fieldState }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel
-                      className={cn(fieldState.invalid && "text-red-500")}>
-                      Neue Nummer
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        style={{ width: "139.25px" }}
-                        placeholder="EF1234"
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            ) : (
-              <Button
-                // style={{ width: "139.25px" }}
-                variant="secondary"
-                className="bg-[#FDC30A] hover:bg-[#e3af09] text-black"
-                type="button"
-                onClick={() => {
-                  setFormSubmitted(true);
-                }}>
-                Gutschein Voll ?
-              </Button>
-            )}
-
-            <Button
-              // style={{ width: "139.25px" }}
-              type="button"
-              disabled={
-                !form.formState.isValid ||
-                Object.keys(form.formState.dirtyFields).length === 0
-              }
-              onClick={() => {
-                setIsLoading(true);
-              }}>
-              Bestätigen
-            </Button>
-          </div>
         </form>
+        {isLoading && (
+          <div
+            className="flex flex-col items-center mt-4"
+            style={{
+              color: "#856404" /* Dark amber text */,
+              backgroundColor: "#fff3cd" /* Light yellow background */,
+              border: "1px solid #ffeeba" /* Soft yellow border */,
+              padding: "5px",
+              borderRadius: "5px",
+              display: "inline-block",
+              width: "100%",
+              textAlign: "center",
+              fontSize: "medium",
+            }}>
+            <Label>Bitte nochmal überprüfen, ob alles korrekt ist.</Label>
+          </div>
+        )}
       </Form>
-      {isLoading && (
-        <AlertDialog open={true} onOpenChange={setIsLoading}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Gutschein einlösen?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Bitte nochmal überprüfen, ob alle Informationen korrekt sind.
-                {/* <br />
-                Nummer: {coupon.id}
-                <br />
-                Betrag: {coupon.restValue}
-                <br />
-                Eingelöster Betrag: {form.getValues("usedValue")}
-                <br />
-                Mitarbeiter: {form.getValues("employee")}
-                <br />
-                Laden: {form.getValues("location")} */}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-              <AlertDialogAction>Einlösen</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
+      {/* {isLoading && (
+        <div className="mt-4">
+          <AlertDialog open={true} onOpenChange={setIsLoading}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Gutschein einlösen?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Bitte nochmal überprüfen, ob alle Informationen korrekt sind.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => form.handleSubmit(onSubmit)()}>
+                  Einlösen
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )} */}
       {/* {isLoading && (
         <div className="flex justify-center items-center">
           <Icons.spinner className="h-12 w-12 animate-spin" />
