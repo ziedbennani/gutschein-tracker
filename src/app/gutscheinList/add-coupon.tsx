@@ -340,7 +340,7 @@ const AddCoupon = () => {
     <>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
-          <Button>Gutschein Erstellen</Button>
+          <Button>Neu Gutschein</Button>
         </DialogTrigger>
         <DialogContent
           onPointerDownOutside={(e) => e.preventDefault()}

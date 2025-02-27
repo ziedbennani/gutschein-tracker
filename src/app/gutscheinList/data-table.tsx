@@ -23,6 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import { ProfileForm } from "./add-coupon";
 import { RedeemForm } from "./redeem-coupon-form";
 import { Coupon } from "./columns";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import { useEffect, useState } from "react";
 
@@ -309,17 +310,17 @@ export function DataTable<TData, TValue>({
         <div className="flex items-center justify-end space-x-2 py-4">
           <Button
             variant="outline"
-            size="sm"
+            size="lg"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}>
-            Previous
+            <ArrowLeft />
           </Button>
           <Button
             variant="outline"
-            size="sm"
+            size="lg"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}>
-            Next
+            <ArrowRight />
           </Button>
         </div>
       </div>
