@@ -60,9 +60,9 @@ const simpleFormSchema = z.object({
 });
 
 // Update the props interface to include schema configuration
-type FormValues =
-  | z.infer<typeof fullFormSchema>
-  | z.infer<typeof simpleFormSchema>;
+// type FormValues =
+//   | z.infer<typeof fullFormSchema>
+//   | z.infer<typeof simpleFormSchema>;
 
 interface ProfileFormProps {
   setCreatedCoupon?: (coupon: Coupon | null) => void;
