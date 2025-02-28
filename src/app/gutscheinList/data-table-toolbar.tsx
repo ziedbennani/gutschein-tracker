@@ -58,7 +58,7 @@ export function DataTableToolbar<TData>({
         <AddCoupon />
         <Button
           variant="outline"
-          className="flex"
+          className="flex h-[38px]"
           onClick={() => {
             setIsRefreshing(true);
 
@@ -67,7 +67,7 @@ export function DataTableToolbar<TData>({
               setIsRefreshing(false);
             }, 2000);
           }}>
-          Aktualisieren
+          Refresh
           <RotateCw
             className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
           />

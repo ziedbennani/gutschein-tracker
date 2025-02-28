@@ -48,7 +48,7 @@ export default async function DemoPage() {
     const data = await getCoupons();
 
     return (
-      <div className="container mx-auto py-20">
+      <div className="container mx-auto">
         <DataTable columns={columns} data={data || []} />
       </div>
     );
@@ -56,7 +56,7 @@ export default async function DemoPage() {
     console.error("Error in DemoPage:", error);
     // Return an error state or empty table
     return (
-      <div className="container mx-auto py-20">
+      <div className="container mx-auto">
         <DataTable columns={columns} data={[]} />
       </div>
     );

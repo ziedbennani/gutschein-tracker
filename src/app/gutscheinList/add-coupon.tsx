@@ -160,7 +160,7 @@ export function ProfileForm({
 
       // 5. Show success toast
       toast({
-        duration: 10000,
+        duration: 5000,
         title: "Gutschein erstellt",
         variant: "success",
         description: (
