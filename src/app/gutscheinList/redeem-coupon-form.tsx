@@ -35,7 +35,7 @@ const formSchema = z.object({
   usedValue: z.number(),
   employee: z.string().min(3),
   location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges"]),
-  tip: z.number().optional(),
+  tip: z.number().nullable().optional(),
   newId: z
     .string()
     .optional()
@@ -226,7 +226,6 @@ export function RedeemForm({
                     <FormControl>
                       <div className="relative">
                         <Input
-                          // style={{ width: "139.25px" }}
                           placeholder="Trinkgeld"
                           type="number"
                           {...field}
@@ -317,7 +316,6 @@ export function RedeemForm({
                   />
                 ) : (
                   <Button
-                    // style={{ width: "139.25px" }}
                     variant="default"
                     type="button"
                     onClick={() => {
@@ -329,7 +327,6 @@ export function RedeemForm({
 
                 {!isConfirming ? (
                   <Button
-                    // style={{ width: "139.25px" }}
                     type="button"
                     className="bg-[#FDC30A] hover:bg-[#e3af09] text-black"
                     onClick={async (e) => {
@@ -344,7 +341,6 @@ export function RedeemForm({
                   </Button>
                 ) : (
                   <Button
-                    // style={{ width: "139.25px" }}
                     className="bg-[#FDC30A] hover:bg-[#e3af09] text-black contrast-125"
                     type="submit"
                     disabled={isLoading}>
@@ -379,9 +375,6 @@ export function RedeemForm({
           </div>
         )}
       </Form>
-      {/* <div className="flex justify-center items-center">
-      <Icons.spinner className="h-12 w-12 animate-spin" />
-      </div> */}
     </>
   );
 }
