@@ -28,7 +28,7 @@ import { useState } from "react";
 
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
-// import { Icons } from "@/components/icons";
+import { Icons } from "@/components/icons";
 
 const formSchema = z.object({
   usedValue: z.number().min(0.9, "Betrag muss größer als 0,90 € sein"),
@@ -63,7 +63,7 @@ export function RedeemForm({
   const { toast } = useToast();
   const router = useRouter();
   const [isFormSubmitted, setFormSubmitted] = useState(false);
-  // const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -75,9 +75,11 @@ export function RedeemForm({
       tip: undefined,
       newId: "",
     },
+    mode: "onSubmit",
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
     try {
       // 1. First, make the API call
       const response = await fetch(`/api/coupons/${coupon.id}/redeem`, {
@@ -95,11 +97,10 @@ export function RedeemForm({
       setDialogOpen(false);
       setIsRedeemReady?.(false);
       setCreatedCoupon?.(null);
-      // setIsLoading(false);
 
       // 3. Show success feedback
       toast({
-        duration: 10000,
+        duration: 5000,
         title: "Gutschein eingelöst",
         variant: "success",
         description: (
@@ -122,6 +123,8 @@ export function RedeemForm({
         title: "Fehler",
         description: "Der Gutschein konnte nicht eingelöst werden.",
       });
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -319,7 +322,8 @@ export function RedeemForm({
                     // style={{ width: "139.25px" }}
                     type="button"
                     className="bg-[#FDC30A] hover:bg-[#e3af09] text-black"
-                    onClick={async () => {
+                    onClick={async (e) => {
+                      e.preventDefault();
                       // Trigger validation on all fields
                       const isValid = await form.trigger();
                       if (isValid) {
@@ -332,14 +336,16 @@ export function RedeemForm({
                   <Button
                     // style={{ width: "139.25px" }}
                     className="bg-[#FDC30A] hover:bg-[#e3af09] text-black contrast-125"
-                    type="button"
-                    onClick={() => {
-                      // setIsLoading(true);
-                      setIsConfirming(false);
-                      setDialogOpen(false);
-                      form.handleSubmit(onSubmit)();
-                    }}>
-                    Einlösen
+                    type="submit"
+                    disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Icons.spinner className="h-4 w-4 animate-spin" />
+                        Warte oh
+                      </>
+                    ) : (
+                      "Einlösen"
+                    )}
                   </Button>
                 )}
               </div>
@@ -360,7 +366,7 @@ export function RedeemForm({
               textAlign: "center",
               fontSize: "medium",
             }}>
-            <Label>Bitte nochmal überprüfen, ob alles korrekt ist.</Label>
+            <Label>Bitte nochmal überprüfen !! ALLES korrekt ?</Label>
           </div>
         )}
       </Form>

@@ -33,6 +33,8 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { Coupon } from "./columns";
+import { Icons } from "@/components/icons";
+import { Label } from "@/components/ui/label";
 // import { formatCurrency } from "./utils";
 
 // Create a base schema with common fields
@@ -66,7 +68,6 @@ interface ProfileFormProps {
   setCreatedCoupon?: (coupon: Coupon | null) => void;
   setDialogOpen: (open: boolean) => void;
   useSimpleSchema?: boolean;
-  onSubmit?: (values: FormValues) => Promise<void>;
   setIsRedeemReady?: (ready: boolean) => void;
   createdCoupon?: Coupon | null;
 }
@@ -75,10 +76,10 @@ export function ProfileForm({
   setCreatedCoupon,
   setDialogOpen,
   useSimpleSchema = false,
-  onSubmit,
   setIsRedeemReady,
 }: ProfileFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
   const formSchema = useSimpleSchema ? simpleFormSchema : fullFormSchema;
   const router = useRouter();
 
@@ -100,14 +101,9 @@ export function ProfileForm({
   });
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
-    setIsSubmitting(true);
+    setIsLoading(true);
 
     try {
-      if (onSubmit) {
-        await onSubmit(values);
-        setIsSubmitting(false);
-        return;
-      }
       if (useSimpleSchema) {
         setDialogOpen(false);
         setIsRedeemReady?.(true);
@@ -181,7 +177,7 @@ export function ProfileForm({
         description: "Der Gutschein konnte nicht erstellt werden.",
       });
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   }
 
@@ -343,34 +339,54 @@ export function ProfileForm({
             )}
           </div>
           <div className="flex justify-end mt-4">
-            <Button disabled={isSubmitting} type="submit">
-              {isSubmitting ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-4 w-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  Wird erstellt...
-                </>
-              ) : (
-                "Bestätigen"
-              )}
-            </Button>
+            {!isConfirming ? (
+              <Button
+                // style={{ width: "139.25px" }}
+                type="button"
+                className="bg-[#FDC30A] hover:bg-[#e3af09] text-black"
+                onClick={async (e) => {
+                  e.preventDefault();
+                  // Trigger validation on all fields
+                  const isValid = await form.trigger();
+                  if (isValid) {
+                    setIsConfirming(true);
+                  }
+                }}>
+                Bestätigen
+              </Button>
+            ) : (
+              <div className="flex gap-2 justify-between w-full">
+                <div
+                  className="items-center"
+                  style={{
+                    color: "#856404" /* Dark amber text */,
+                    backgroundColor: "#fff3cd" /* Light yellow background */,
+                    border: "1px solid #ffeeba" /* Soft yellow border */,
+                    padding: "5px",
+                    borderRadius: "5px",
+                    display: "inline-block",
+                    width: "100%",
+                    textAlign: "center",
+                    fontSize: "medium",
+                  }}>
+                  <Label>Bitte nochmal überprüfen !! ALLES korrekt ?</Label>
+                </div>
+                <Button
+                  // style={{ width: "139.25px" }}
+                  className="bg-[#FDC30A] hover:bg-[#e3af09] text-black contrast-125"
+                  type="submit"
+                  disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Icons.spinner className="h-4 w-4 animate-spin" />
+                      Warte oh
+                    </>
+                  ) : (
+                    "Erstellen"
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
         </form>
       </Form>
