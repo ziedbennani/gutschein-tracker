@@ -57,7 +57,7 @@ const RedeemCouponDialog = ({
             <DialogTitle>
               <div className="flex justify-around">
                 <span className="text-sm font-medium">
-                  Gutschein{" "}
+                  Nummer{" "}
                   <span className="text-base font-bold">{coupon.id}</span>
                 </span>
                 <span className="text-sm font-medium">
