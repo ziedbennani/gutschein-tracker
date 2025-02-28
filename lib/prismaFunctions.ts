@@ -1,49 +1,40 @@
-import { Coupon } from "@/app/gutscheinList/columns";
-import prisma from "./db";
-import { Coupon as PrismaCoupon } from "@prisma/client";
-// import { PrismaClient } from "@prisma/client";
+// import { Coupon } from "@/app/gutscheinList/columns";
+// import prisma from "./db";
+// import { Coupon as PrismaCoupon } from "@prisma/client";
+// // import { PrismaClient } from "@prisma/client";
 
-async function testConnection() {
-  try {
-    await prisma.$connect();
-    console.log("Database connected successfully");
-  } catch (error) {
-    console.error("Database connection failed:", error);
-  }
-}
+// export async function testConnection() {
+//   try {
+//     await prisma.$connect();
+//     console.log("Database connected successfully");
+//   } catch (error) {
+//     console.error("Database connection failed:", error);
+//   }
+// }
 
-testConnection();
+// testConnection();
 
-export async function getCoupons(): Promise<Coupon[]> {
-  try {
-    const coupons = await prisma.coupon.findMany({
-      orderBy: {
-        updatedAt: "desc",
-      },
-    });
+// export async function getCoupons(): Promise<Coupon[]> {
+//   try {
+//     const baseUrl =
+//       process.env.NEXT_PUBLIC_BASE_URL ||
+//       "https://gutschein-tracker.vercel.app/";
+//     const response = await fetch(`${baseUrl}/api/coupons`, {
+//       cache: "no-store",
+//       next: { revalidate: 0 },
+//     });
 
-    if (!coupons) return [];
+//     if (!response.ok) {
+//       throw new Error(`Failed to fetch coupons: ${response.status}`);
+//     }
 
-    return coupons.map((coupon: PrismaCoupon) => ({
-      ...coupon,
-      firstValue: coupon.firstValue,
-      usedValue: coupon.usedValue,
-      restValue: coupon.restValue,
-      updatedAt: coupon.updatedAt.toISOString(),
-      createdAt: coupon.createdAt.toISOString(),
-      location: coupon.location as
-        | "Braugasse"
-        | "Transit"
-        | "Pit Stop"
-        | "Wirges"
-        | undefined,
-    }));
-  } catch (error) {
-    // Ensure error is properly formatted before logging
-    console.error(
-      "Error fetching coupons:",
-      error instanceof Error ? error.message : "Unknown error"
-    );
-    return [];
-  }
-}
+//     const result = await response.json();
+//     return result.data || [];
+//   } catch (error) {
+//     console.error(
+//       "Error fetching coupons:",
+//       error instanceof Error ? error.message : "Unknown error"
+//     );
+//     return [];
+//   }
+// }
