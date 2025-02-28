@@ -78,6 +78,7 @@ export function ProfileForm({
   onSubmit,
   setIsRedeemReady,
 }: ProfileFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const formSchema = useSimpleSchema ? simpleFormSchema : fullFormSchema;
   const router = useRouter();
 
@@ -99,16 +100,19 @@ export function ProfileForm({
   });
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
-    if (onSubmit) {
-      await onSubmit(values);
-      return;
-    }
-    if (useSimpleSchema) {
-      setDialogOpen(false);
-      setIsRedeemReady?.(true);
-    }
+    setIsSubmitting(true);
 
     try {
+      if (onSubmit) {
+        await onSubmit(values);
+        setIsSubmitting(false);
+        return;
+      }
+      if (useSimpleSchema) {
+        setDialogOpen(false);
+        setIsRedeemReady?.(true);
+      }
+
       // 1. First, validate data (check if ID exists)
       const checkResponse = await fetch(
         `/api/coupons/check-id?id=${values.id}`
@@ -144,17 +148,30 @@ export function ProfileForm({
       const data = await response.json();
       if (!response.ok) throw new Error("Failed to create coupon");
 
-      // 3. Update UI state
-      setDialogOpen(false);
-
-      // 5. Update local state and data
+      // 3. Update local state first (synchronous operations)
       if (useSimpleSchema) {
         setCreatedCoupon?.(data.data.coupon);
       } else {
         setIsRedeemReady?.(false);
       }
 
-      // 6. Finally, refresh the page data
+      // 4. Close the dialog (UI update)
+      setDialogOpen(false);
+
+      // 5. Show success toast
+      toast({
+        duration: 10000,
+        title: "Gutschein erstellt",
+        variant: "success",
+        description: (
+          <span>
+            Der Gutschein <strong>{values.id}</strong> wurde erfolgreich
+            erstellt.
+          </span>
+        ),
+      });
+
+      // 6. Finally, refresh the router (this might cause a brief loading state)
       router.refresh();
     } catch (error) {
       console.error("Error creating coupon:", error);
@@ -163,6 +180,8 @@ export function ProfileForm({
         title: "Fehler",
         description: "Der Gutschein konnte nicht erstellt werden.",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -324,7 +343,34 @@ export function ProfileForm({
             )}
           </div>
           <div className="flex justify-end mt-4">
-            <Button type="submit">Bestätigen</Button>
+            <Button disabled={isSubmitting} type="submit">
+              {isSubmitting ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Wird erstellt...
+                </>
+              ) : (
+                "Bestätigen"
+              )}
+            </Button>
           </div>
         </form>
       </Form>

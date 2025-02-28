@@ -1,6 +1,7 @@
 import { Coupon } from "@/app/gutscheinList/columns";
-import { prisma } from "./db";
+import prisma from "./db";
 import { Coupon as PrismaCoupon } from "@prisma/client";
+// import { PrismaClient } from "@prisma/client";
 
 async function testConnection() {
   try {

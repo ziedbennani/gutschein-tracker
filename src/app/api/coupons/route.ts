@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../../../lib/db";
+import prisma from "../../../../lib/db";
 import { revalidatePath } from "next/cache";
 import { Coupon } from "@prisma/client";
 
@@ -41,21 +41,21 @@ export async function POST(request: Request) {
 }
 
 // Add a GET handler to fetch all coupons
-export async function GET() {
-  try {
-    const coupons = await prisma.coupon.findMany({
-      orderBy: { updatedAt: "desc" },
-    });
+// export async function GET() {
+//   try {
+//     const coupons = await prisma.coupon.findMany({
+//       orderBy: { updatedAt: "desc" },
+//     });
 
-    return NextResponse.json({
-      data: coupons.map((coupon: Coupon) => ({
-        ...coupon,
-        updatedAt: coupon.updatedAt.toISOString(),
-        createdAt: coupon.createdAt.toISOString(),
-      })),
-    });
-  } catch (error) {
-    console.error("Error fetching coupons:", error);
-    return NextResponse.json({ data: [] });
-  }
-}
+//     return NextResponse.json({
+//       data: coupons.map((coupon: Coupon) => ({
+//         ...coupon,
+//         updatedAt: coupon.updatedAt.toISOString(),
+//         createdAt: coupon.createdAt.toISOString(),
+//       })),
+//     });
+//   } catch (error) {
+//     console.error("Error fetching coupons:", error);
+//     return NextResponse.json({ data: [] });
+//   }
+// }
