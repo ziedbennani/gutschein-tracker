@@ -155,20 +155,22 @@ export function ProfileForm({
       setDialogOpen(false);
 
       // 5. Show success toast
-      toast({
-        duration: 5000,
-        title: "Gutschein erstellt",
-        variant: "success",
-        description: (
-          <span>
-            Der Gutschein <strong>{values.id}</strong> wurde erfolgreich
-            erstellt.
-          </span>
-        ),
-      });
+      if (!useSimpleSchema) {
+        toast({
+          duration: 5000,
+          title: "Gutschein erstellt",
+          variant: "success",
+          description: (
+            <span>
+              Der Gutschein <strong>{values.id}</strong> wurde erfolgreich
+              erstellt.
+            </span>
+          ),
+        });
+        router.refresh();
+      }
 
-      // 6. Finally, refresh the router (this might cause a brief loading state)
-      router.refresh();
+      // 6. Finally, refresh the router
     } catch (error) {
       console.error("Error creating coupon:", error);
       toast({
@@ -202,7 +204,7 @@ export function ProfileForm({
                     Nummer
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="EF1234" {...field} />
+                    <Input placeholder="Nummer" {...field} />
                   </FormControl>
                 </FormItem>
               )}
@@ -224,7 +226,7 @@ export function ProfileForm({
                       <FormControl>
                         <div className="relative">
                           <Input
-                            placeholder="0,00"
+                            placeholder="Betrag"
                             type="number"
                             className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             {...field}
@@ -289,7 +291,7 @@ export function ProfileForm({
                       <FormControl>
                         <div className="relative">
                           <Input
-                            placeholder="10,00"
+                            placeholder="Betrag"
                             type="number"
                             className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             {...field}
@@ -357,7 +359,7 @@ export function ProfileForm({
             ) : (
               <div className="flex gap-2 justify-between w-full">
                 <div
-                  className="items-center"
+                  className="items-center animate-[pulse_0.8s_ease-in-out_infinite]"
                   style={{
                     color: "#856404" /* Dark amber text */,
                     backgroundColor: "#fff3cd" /* Light yellow background */,
@@ -367,7 +369,6 @@ export function ProfileForm({
                     display: "inline-block",
                     width: "100%",
                     textAlign: "center",
-                    fontSize: "medium",
                   }}>
                   <Label>Bitte nochmal überprüfen !! ALLES korrekt ?</Label>
                 </div>

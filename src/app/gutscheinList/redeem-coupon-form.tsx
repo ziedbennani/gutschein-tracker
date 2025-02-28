@@ -29,12 +29,13 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Icons } from "@/components/icons";
+import { formatCurrency } from "./utils";
 
 const formSchema = z.object({
-  usedValue: z.number().min(0.9, "Betrag muss größer als 0,90 € sein"),
+  usedValue: z.number(),
   employee: z.string().min(3),
   location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges"]),
-  tip: z.number().default(0).optional(),
+  tip: z.number().optional(),
   newId: z
     .string()
     .optional()
@@ -129,15 +130,17 @@ export function RedeemForm({
   }
 
   const remainingAmount = (field: FieldType) => {
+    const tipValue = form.watch("tip") || 0;
+
     if (
       field.value === undefined ||
       field.value === null ||
       field.value === 0
     ) {
-      return coupon.restValue.toFixed(2);
+      return formatCurrency(coupon.restValue - tipValue);
     }
-    const remaining = coupon.restValue - field.value;
-    return Math.abs(remaining).toFixed(2);
+    const remaining = coupon.restValue - field.value - tipValue;
+    return formatCurrency(Math.abs(remaining));
   };
 
   const isPositiveBalance = (field: FieldType) => {
@@ -148,14 +151,14 @@ export function RedeemForm({
     ) {
       return true;
     }
-    return coupon.restValue - field.value > 0;
+    return coupon.restValue - field.value >= 0;
   };
 
   return (
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="flex gap-6">
+          <div className="flex gap-4">
             {/* Left Column */}
             <div className="flex-1 flex flex-col">
               <FormField
@@ -167,7 +170,7 @@ export function RedeemForm({
                     <FormControl>
                       <div className="relative">
                         <Input
-                          placeholder="0,00"
+                          placeholder="Betrag"
                           type="number"
                           className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           {...field}
@@ -188,11 +191,15 @@ export function RedeemForm({
                       <FormLabel>
                         {field.value === undefined ||
                         field.value === null ||
-                        field.value === 0
-                          ? "Restbetrag"
-                          : isPositiveBalance(field)
-                          ? "Restbetrag"
-                          : "Zuzahlung"}
+                        field.value === 0 ? (
+                          "Restbetrag"
+                        ) : isPositiveBalance(field) ? (
+                          "Restbetrag"
+                        ) : (
+                          <span className="text-red-500 uppercase animate-[pulse_0.7s_ease-in-out_infinite] inline-block">
+                            Zuzahlung
+                          </span>
+                        )}
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
@@ -201,9 +208,6 @@ export function RedeemForm({
                             disabled
                             className="mt-2 [&:disabled]:opacity-100 [&:disabled]:text-black [&:disabled]:cursor-default"
                           />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
-                            €
-                          </span>
                         </div>
                       </FormControl>
                     </div>
@@ -223,9 +227,15 @@ export function RedeemForm({
                       <div className="relative">
                         <Input
                           // style={{ width: "139.25px" }}
-                          placeholder="0,00"
+                          placeholder="Trinkgeld"
+                          type="number"
                           {...field}
                           value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value ? Number(e.target.value) : null
+                            )
+                          }
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
                           €
@@ -298,7 +308,7 @@ export function RedeemForm({
                         <FormControl>
                           <Input
                             style={{ width: "139.25px" }}
-                            placeholder="EF1234"
+                            placeholder="Nummer"
                             {...field}
                           />
                         </FormControl>
@@ -354,7 +364,7 @@ export function RedeemForm({
         </form>
         {isConfirming && (
           <div
-            className="flex flex-col items-center mt-4"
+            className="flex flex-col items-center animate-[pulse_0.8s_ease-in-out_infinite] mt-4"
             style={{
               color: "#856404" /* Dark amber text */,
               backgroundColor: "#fff3cd" /* Light yellow background */,
@@ -364,7 +374,6 @@ export function RedeemForm({
               display: "inline-block",
               width: "100%",
               textAlign: "center",
-              fontSize: "medium",
             }}>
             <Label>Bitte nochmal überprüfen !! ALLES korrekt ?</Label>
           </div>

@@ -160,12 +160,8 @@ export function DataTable<TData, TValue>({
   });
 
   useEffect(() => {
-    console.log("isRedeemReady[data-table.tsx] changed to: ", isRedeemReady);
+    console.log("isRedeemReady", isRedeemReady);
   }, [isRedeemReady]);
-
-  useEffect(() => {
-    console.log("createdCoupon[data-table.tsx] changed to: ", createdCoupon);
-  }, [createdCoupon]);
 
   // Wrap the entire component with the AuthWrapper
   return (
@@ -175,7 +171,8 @@ export function DataTable<TData, TValue>({
           <DataTableToolbar
             table={table}
             data={data}
-            createdCoupon={createdCoupon}
+            isRedeemReady={isRedeemReady}
+            // createdCoupon={createdCoupon}
           />
         </div>
         <div className="rounded-md border">
@@ -231,10 +228,10 @@ export function DataTable<TData, TValue>({
                       onOpenChange={setIsOldCouponDialogOpen}>
                       <DialogContent
                         onPointerDownOutside={(e) => e.preventDefault()}
-                        className="p-5 gap-5 max-w-[95vw] w-full mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
+                        className="p-5 gap-5 max-w-[95vw] w-[496px] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
                         aria-describedby={undefined}>
                         <DialogHeader>
-                          <DialogTitle>Alten Gutschein hinzufügen</DialogTitle>
+                          <DialogTitle>Alten Gutschein eintragen</DialogTitle>
                           <Separator className="my-4" />
                         </DialogHeader>
                         <ProfileForm
@@ -252,7 +249,7 @@ export function DataTable<TData, TValue>({
                         onOpenChange={setIsRedeemReady}>
                         {isRedeemReady && createdCoupon != null ? (
                           <DialogContent
-                            className="flex p-4 gap-12 max-w-[95vw] w-full mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
+                            className="flex p-4 gap-4 max-w-[95vw] w-full mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
                             onPointerDownOutside={(e) => e.preventDefault()}
                             aria-describedby={undefined}>
                             <div className="flex-1">
@@ -288,7 +285,7 @@ export function DataTable<TData, TValue>({
                           </DialogContent>
                         ) : (
                           <DialogContent
-                            className="flex p-4 [&>button]:hidden max-w-[95vw] w-full mx-auto mt-2 top-0 translate-y-0 overflow-y-auto "
+                            className="flex p-4 [&>button]:hidden max-w-[95vw] w-[496px] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto "
                             style={{ width: "518.84px", height: "300.75px" }}
                             onPointerDownOutside={(e) => e.preventDefault()}
                             aria-describedby={undefined}>

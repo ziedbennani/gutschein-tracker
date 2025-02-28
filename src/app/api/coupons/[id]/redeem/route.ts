@@ -38,7 +38,9 @@ export async function PUT(
     }
 
     // Calculate the new values
-    const newRestValue = currentCoupon.restValue - usedValue;
+    const newRestValue = tip
+      ? currentCoupon.restValue - usedValue - tip
+      : currentCoupon.restValue - usedValue;
     const newUsedValue = (currentCoupon.usedValue || 0) + usedValue;
     const isNowUsed = newRestValue <= 0;
 

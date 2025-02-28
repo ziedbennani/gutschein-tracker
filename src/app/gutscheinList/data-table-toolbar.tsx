@@ -6,29 +6,30 @@ import { Button } from "./../../components/ui/button";
 import { Input } from "./../../components/ui/input";
 import AddCoupon from "./add-coupon";
 import { useEffect, useState } from "react";
-import { Coupon } from "./columns";
 import { useRouter } from "next/navigation";
 import { RotateCw, Search } from "lucide-react";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   data: TData[];
-  createdCoupon: Coupon | null;
+  isRedeemReady: boolean;
+  // createdCoupon: Coupon | null;
 }
 
 export function DataTableToolbar<TData>({
   table,
-  createdCoupon,
+  isRedeemReady,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    if (createdCoupon === null) {
+    if (!isRedeemReady) {
       table.resetColumnFilters();
+      console.log("isRedeemReady", isRedeemReady);
     }
-  }, [table, createdCoupon]);
+  }, [isRedeemReady]);
 
   return (
     <div className="flex items-center my-4">
@@ -58,7 +59,7 @@ export function DataTableToolbar<TData>({
         <AddCoupon />
         <Button
           variant="outline"
-          className="flex h-[38px]"
+          className="flex h-[38px] text-[#57b8d6] bg-[#f0fcff] border-[#dbf6ff] border-2"
           onClick={() => {
             setIsRefreshing(true);
 

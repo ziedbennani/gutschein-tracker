@@ -89,7 +89,7 @@ export const columns: ColumnDef<Coupon>[] = [
   },
   {
     accessorKey: "firstValue",
-    header: "Anfangsbetrag",
+    header: "Erster Betrag",
     cell: (row) => {
       const value = row.getValue() as number;
       return value ? formatCurrency(value) : "-";
@@ -97,7 +97,7 @@ export const columns: ColumnDef<Coupon>[] = [
   },
   {
     accessorKey: "usedValue",
-    header: "Eingelöster Betrag",
+    header: "Eingelöst",
     cell: (row) => {
       const value = row.getValue() as number;
       return formatCurrency(value);
@@ -105,7 +105,7 @@ export const columns: ColumnDef<Coupon>[] = [
   },
   {
     accessorKey: "restValue",
-    header: "Aktueller Betrag",
+    header: "Aktuell",
     cell: (row) => {
       const value = row.getValue() as number;
       return formatCurrency(value);
@@ -117,13 +117,13 @@ export const columns: ColumnDef<Coupon>[] = [
   },
   {
     accessorKey: "updatedAt",
-    header: "letzte Änderung",
+    header: "Datum",
     cell: (row) => {
       const dateValue = row.getValue() as string;
       const FirstOptions: Intl.DateTimeFormatOptions = {
         weekday: "long",
         year: "numeric",
-        month: "long",
+        month: "2-digit",
         day: "numeric",
       };
       const SecondOptions: Intl.DateTimeFormatOptions = {
@@ -152,6 +152,17 @@ export const columns: ColumnDef<Coupon>[] = [
       const handleCouponRedeemed = (couponId: string) => {
         console.log(`Call from column.tsx: Coupon redeemed: ${couponId}`);
       };
+
+      if (coupon.used) {
+        return (
+          <Button
+            variant="secondary"
+            size="sm"
+            className="text-gray-500 p-2.5 bg-gray-100">
+            Eingelöst
+          </Button>
+        );
+      }
 
       return (
         <div className="flex items-center gap-2">
