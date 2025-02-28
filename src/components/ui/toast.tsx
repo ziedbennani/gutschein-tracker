@@ -5,7 +5,6 @@ import * as ToastPrimitives from "@radix-ui/react-toast";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { Cross2Icon } from "@radix-ui/react-icons";
-import couponIcon from "./../../../public/images/voucher.png";
 
 const ToastProvider = ToastPrimitives.Provider;
 
@@ -93,13 +92,6 @@ const ToastTitle = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Title>
 >(({ className, ...props }, ref) => (
   <div className="flex items-center gap-3">
-    <img
-      src={couponIcon.src}
-      alt="Voucher Icon"
-      className="icon-container"
-      width={30}
-      height={30}
-    />
     <ToastPrimitives.Title
       ref={ref}
       className={cn("text-lg font-bold [&+div]:text-base", className)}

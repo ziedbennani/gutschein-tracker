@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../lib/db";
 import { revalidatePath } from "next/cache";
-import { Coupon } from "@prisma/client";
 
 export async function POST(request: Request) {
   try {

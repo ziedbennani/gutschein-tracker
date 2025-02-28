@@ -40,6 +40,7 @@ import { DataTableToolbar } from "./data-table-toolbar";
 import { formatCurrency } from "./utils";
 import { Icons } from "@/components/icons";
 import { Input } from "@/components/ui/input";
+import Image from "next/image";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -78,7 +79,7 @@ const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
       <div className="flex justify-center">
         <div className="w-full max-w-md space-y-8 p-10">
           <div className="text-center justify-items-center">
-            <img src={logo.src} alt="logo" />
+            <Image src={logo} alt="logo" priority />
             <h2 className="mt-6 text-3xl font-bold text-gray-900">
               Gutschein System
             </h2>
