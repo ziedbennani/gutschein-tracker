@@ -8,6 +8,7 @@ import AddCoupon from "./add-coupon";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RotateCw, Search } from "lucide-react";
+import confetti from "canvas-confetti";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -30,6 +31,33 @@ export function DataTableToolbar<TData>({
       console.log("isRedeemReady", isRedeemReady);
     }
   }, [isRedeemReady]);
+
+  const schoolPride = () => {
+    const end = Date.now() + 1 * 1000; // run for 1 second
+
+    const colors = ["#FDC30A", "#6D676E"]; // using your theme colors, you can adjust these
+
+    (function frame() {
+      confetti({
+        particleCount: 4,
+        angle: 60,
+        spread: 50,
+        origin: { x: 0 },
+        colors: colors,
+      });
+      confetti({
+        particleCount: 4,
+        angle: 120,
+        spread: 50,
+        origin: { x: 1 },
+        colors: colors,
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    })();
+  };
 
   return (
     <div className="flex items-center my-4">
@@ -62,6 +90,7 @@ export function DataTableToolbar<TData>({
           className="flex h-[38px] text-[#57b8d6] bg-[#f0fcff] border-[#dbf6ff] border-2"
           onClick={() => {
             setIsRefreshing(true);
+            schoolPride();
 
             router.refresh();
             setTimeout(() => {
@@ -70,7 +99,9 @@ export function DataTableToolbar<TData>({
           }}>
           Refresh
           <RotateCw
-            className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+            className={`h-4 w-4 ${
+              isRefreshing ? "animate-spin [animation-duration:0.5s]" : ""
+            }`}
           />
         </Button>
       </div>
