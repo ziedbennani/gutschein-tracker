@@ -21,13 +21,13 @@ model Coupon {
   description  String
   oldSystem    Boolean
   oldId        String?  
-  firstValue   Float?
-  usedValue    Float?
-  restValue    Float
+  firstValue   Decimal? @db.Decimal(10,2)
+  usedValue    Decimal? @db.Decimal(10,2)
+  restValue    Decimal? @db.Decimal(10,2)
   used         Boolean
   location     String?
-  extraPayment Float?   
-  tip          Float?   
+  extraPayment Decimal? @db.Decimal(10,2)
+  tip          Decimal? @db.Decimal(10,2)
 
   couponHistory CouponHistory[] @relation("CouponHistory")
 }
@@ -39,13 +39,13 @@ model CouponHistory {
   description  String
   oldSystem    Boolean
   oldId        String?  
-  firstValue   Float?
-  usedValue    Float?
-  restValue    Float
+  firstValue   Decimal? @db.Decimal(10,2)
+  usedValue    Decimal? @db.Decimal(10,2)
+  restValue    Decimal? @db.Decimal(10,2)
   used         Boolean
   location     String?
-  extraPayment Float?   
-  tip          Float?   
+  extraPayment Decimal? @db.Decimal(10,2)
+  tip          Decimal? @db.Decimal(10,2)
 
   coupon      Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade, name: "CouponHistory")
   couponId    String

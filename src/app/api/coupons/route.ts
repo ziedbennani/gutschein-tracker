@@ -9,9 +9,30 @@ export async function POST(request: Request) {
     const coupon = await prisma.coupon.create({
       data: {
         ...data,
-        description: `NEU GUTSCHEIN ! `,
+        usedValue: 0,
+        description: `NEU! ${data.id} mit ${Number(data.firstValue).toFixed(
+          2
+        )} €`,
       },
     });
+
+    // Create history record for new coupon
+    await prisma.couponHistory.create({
+      data: {
+        couponId: coupon.id,
+        employee: data.employee,
+        description: `NEU! ${data.id} mit ${Number(coupon.firstValue).toFixed(
+          2
+        )} €`,
+        oldSystem: false,
+        firstValue: coupon.firstValue,
+        usedValue: 0,
+        restValue: coupon.firstValue,
+        used: false,
+        location: data.location,
+      },
+    });
+
     console.log("coupon created :", coupon);
 
     // Revalidate the coupons list page after creating a new coupon

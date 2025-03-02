@@ -139,6 +139,7 @@ export function DataTable<TData, TValue>({
   const [isOldCouponDialogOpen, setIsOldCouponDialogOpen] = useState(false);
   const [isRedeemReady, setIsRedeemReady] = useState(false);
   const [createdCoupon, setCreatedCoupon] = useState<Coupon | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
   const table = useReactTable({
     data,
     columns,
@@ -163,163 +164,175 @@ export function DataTable<TData, TValue>({
     console.log("isRedeemReady", isRedeemReady);
   }, [isRedeemReady]);
 
+  useEffect(() => {
+    const handleShake = () => {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 1500);
+    };
+
+    window.addEventListener("shakeTable", handleShake);
+    return () => window.removeEventListener("shakeTable", handleShake);
+  }, []);
+
   // Wrap the entire component with the AuthWrapper
   return (
     <AuthWrapper>
-      <div>
-        <div className="flex items-center py-4">
-          <DataTableToolbar
-            table={table}
-            data={data}
-            isRedeemReady={isRedeemReady}
-            // createdCoupon={createdCoupon}
-          />
-        </div>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
+      <div className={isShaking ? "animate-shake" : ""}>
+        <div>
+          <div className="flex items-center py-4">
+            <DataTableToolbar
+              table={table}
+              data={data}
+              isRedeemReady={isRedeemReady}
+              // createdCoupon={createdCoupon}
+            />
+          </div>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      );
+                    })}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center">
-                    <Button
-                      onClick={() => setIsOldCouponDialogOpen(true)}
-                      variant="outline"
-                      className="mx-auto bg-[#FDC30A] hover:bg-[#e3af09] text-black">
-                      Alten Gutschein einlösen
-                    </Button>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center">
+                      <Button
+                        onClick={() => setIsOldCouponDialogOpen(true)}
+                        variant="outline"
+                        className="mx-auto bg-[#FDC30A] hover:bg-[#e3af09] text-black">
+                        Alten Gutschein einlösen
+                      </Button>
 
-                    <Dialog
-                      open={isOldCouponDialogOpen}
-                      onOpenChange={setIsOldCouponDialogOpen}>
-                      <DialogContent
-                        onPointerDownOutside={(e) => e.preventDefault()}
-                        className="p-5 gap-5 max-w-[95vw] w-[496px] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
-                        aria-describedby={undefined}>
-                        <DialogHeader>
-                          <DialogTitle>Alten Gutschein eintragen</DialogTitle>
-                          <Separator className="my-4" />
-                        </DialogHeader>
-                        <ProfileForm
-                          setIsRedeemReady={setIsRedeemReady}
-                          setDialogOpen={setIsOldCouponDialogOpen}
-                          setCreatedCoupon={setCreatedCoupon}
-                          useSimpleSchema={true}
-                        />
-                      </DialogContent>
-                    </Dialog>
-
-                    {isRedeemReady && (
                       <Dialog
-                        open={isRedeemReady}
-                        onOpenChange={setIsRedeemReady}>
-                        {isRedeemReady && createdCoupon != null ? (
-                          <DialogContent
-                            className="flex p-4 gap-4 max-w-[95vw] w-full mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
-                            onPointerDownOutside={(e) => e.preventDefault()}
-                            aria-describedby={undefined}>
-                            <div className="flex-1">
-                              <DialogHeader>
-                                <DialogTitle>
-                                  <div className="flex justify-around">
-                                    <span className="text-sm font-medium">
-                                      Nummer{" "}
-                                      <span className="text-base font-bold">
-                                        {createdCoupon.id}
-                                      </span>
-                                    </span>
-                                    <span className="text-sm font-medium">
-                                      Betrag{" "}
-                                      <span className="text-base font-bold">
-                                        {formatCurrency(
-                                          createdCoupon.restValue
-                                        )}{" "}
-                                      </span>
-                                    </span>
-                                  </div>
-                                  <Separator className="my-3" />
-                                </DialogTitle>
-                              </DialogHeader>
-                              <RedeemForm
-                                coupon={createdCoupon}
-                                setDialogOpen={setIsOldCouponDialogOpen}
-                                onCouponRedeemed={() => {}}
-                                setIsRedeemReady={setIsRedeemReady}
-                                setCreatedCoupon={setCreatedCoupon}
-                              />
-                            </div>
-                          </DialogContent>
-                        ) : (
-                          <DialogContent
-                            className="flex p-4 [&>button]:hidden max-w-[95vw] w-[496px] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto "
-                            style={{ width: "518.84px", height: "300.75px" }}
-                            onPointerDownOutside={(e) => e.preventDefault()}
-                            aria-describedby={undefined}>
-                            <div className="flex-1 flex items-center justify-center">
-                              <DialogHeader>
-                                <DialogTitle></DialogTitle>
-                              </DialogHeader>
-                              <Icons.spinner className="h-12 w-12 animate-spin" />
-                            </div>
-                          </DialogContent>
-                        )}
+                        open={isOldCouponDialogOpen}
+                        onOpenChange={setIsOldCouponDialogOpen}>
+                        <DialogContent
+                          onPointerDownOutside={(e) => e.preventDefault()}
+                          className="p-5 gap-5 max-w-[95vw] w-[496px] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
+                          aria-describedby={undefined}>
+                          <DialogHeader>
+                            <DialogTitle>Alten Gutschein eintragen</DialogTitle>
+                            <Separator className="my-4" />
+                          </DialogHeader>
+                          <ProfileForm
+                            setIsRedeemReady={setIsRedeemReady}
+                            setDialogOpen={setIsOldCouponDialogOpen}
+                            setCreatedCoupon={setCreatedCoupon}
+                            useSimpleSchema={true}
+                          />
+                        </DialogContent>
                       </Dialog>
-                    )}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="flex items-center justify-end space-x-2 py-4">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}>
-            <ArrowLeft />
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}>
-            <ArrowRight />
-          </Button>
+
+                      {isRedeemReady && (
+                        <Dialog
+                          open={isRedeemReady}
+                          onOpenChange={setIsRedeemReady}>
+                          {isRedeemReady && createdCoupon != null ? (
+                            <DialogContent
+                              className="flex p-4 gap-4 max-w-[95vw] w-full mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
+                              onPointerDownOutside={(e) => e.preventDefault()}
+                              aria-describedby={undefined}>
+                              <div className="flex-1">
+                                <DialogHeader>
+                                  <DialogTitle>
+                                    <div className="flex justify-around">
+                                      <span className="text-sm font-medium">
+                                        Nummer{" "}
+                                        <span className="text-base font-bold">
+                                          {createdCoupon.id}
+                                        </span>
+                                      </span>
+                                      <span className="text-sm font-medium">
+                                        Betrag{" "}
+                                        <span className="text-base font-bold">
+                                          {formatCurrency(
+                                            createdCoupon.restValue
+                                          )}{" "}
+                                        </span>
+                                      </span>
+                                    </div>
+                                    <Separator className="my-3" />
+                                  </DialogTitle>
+                                </DialogHeader>
+                                <RedeemForm
+                                  coupon={createdCoupon}
+                                  setDialogOpen={setIsOldCouponDialogOpen}
+                                  onCouponRedeemed={() => {}}
+                                  setIsRedeemReady={setIsRedeemReady}
+                                  setCreatedCoupon={setCreatedCoupon}
+                                />
+                              </div>
+                            </DialogContent>
+                          ) : (
+                            <DialogContent
+                              className="flex p-4 [&>button]:hidden max-w-[95vw] w-[496px] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto "
+                              style={{ width: "518.84px", height: "300.75px" }}
+                              onPointerDownOutside={(e) => e.preventDefault()}
+                              aria-describedby={undefined}>
+                              <div className="flex-1 flex items-center justify-center">
+                                <DialogHeader>
+                                  <DialogTitle></DialogTitle>
+                                </DialogHeader>
+                                <Icons.spinner className="h-12 w-12 animate-spin" />
+                              </div>
+                            </DialogContent>
+                          )}
+                        </Dialog>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="flex items-center justify-end space-x-2 py-4">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}>
+              <ArrowLeft />
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}>
+              <ArrowRight />
+            </Button>
+          </div>
         </div>
       </div>
     </AuthWrapper>

@@ -124,7 +124,7 @@ export const columns: ColumnDef<Coupon>[] = [
         weekday: "long",
         year: "numeric",
         month: "2-digit",
-        day: "numeric",
+        day: "2-digit",
       };
       const SecondOptions: Intl.DateTimeFormatOptions = {
         hour: "2-digit",
@@ -139,7 +139,7 @@ export const columns: ColumnDef<Coupon>[] = [
         SecondOptions
       ).format(new Date(dateValue));
 
-      return `${formattedDate} - ${formattedTime}`; // Format the date as needed
+      return `${formattedDate},  ${formattedTime}`; // Format the date as needed
     },
   },
   {

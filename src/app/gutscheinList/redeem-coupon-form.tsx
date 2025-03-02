@@ -10,6 +10,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 
 import {
@@ -82,6 +83,20 @@ export function RedeemForm({
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
+      if (values.newId) {
+        const checkResponse = await fetch(
+          `/api/coupons/check-id?id=${values.newId}`
+        );
+        const { exists } = await checkResponse.json();
+
+        if (exists) {
+          form.setError("newId", {
+            type: "manual",
+            message: "Schon gegeben ",
+          });
+          return;
+        }
+      }
       // 1. First, make the API call
       const response = await fetch(`/api/coupons/${coupon.id}/redeem`, {
         method: "PUT",
@@ -293,13 +308,13 @@ export function RedeemForm({
                   )}
                 />
               </div>
-              <div className="flex mt-auto gap-2 items-end">
+              <div className="flex mt-auto gap-2">
                 {isFormSubmitted ? (
                   <FormField
                     control={form.control}
                     name="newId"
                     render={({ field, fieldState }) => (
-                      <FormItem className="flex flex-col">
+                      <FormItem className="flex flex-col mt-4">
                         <FormLabel
                           className={cn(fieldState.invalid && "text-red-500")}>
                           Neue Nummer
@@ -311,11 +326,13 @@ export function RedeemForm({
                             {...field}
                           />
                         </FormControl>
+                        <FormMessage className="text-sm" />
                       </FormItem>
                     )}
                   />
                 ) : (
                   <Button
+                    className="mt-[2.35rem]"
                     variant="default"
                     type="button"
                     onClick={() => {
@@ -328,7 +345,7 @@ export function RedeemForm({
                 {!isConfirming ? (
                   <Button
                     type="button"
-                    className="bg-[#FDC30A] hover:bg-[#e3af09] text-black"
+                    className="mt-[2.35rem] bg-[#FDC30A] hover:bg-[#e3af09] text-black"
                     onClick={async (e) => {
                       e.preventDefault();
                       // Trigger validation on all fields
@@ -341,7 +358,7 @@ export function RedeemForm({
                   </Button>
                 ) : (
                   <Button
-                    className="bg-[#FDC30A] hover:bg-[#e3af09] text-black contrast-125"
+                    className="mb-2 mt-[2.35rem] bg-[#FDC30A] hover:bg-[#e3af09] text-black contrast-125"
                     type="submit"
                     disabled={isLoading}>
                     {isLoading ? (
@@ -360,7 +377,7 @@ export function RedeemForm({
         </form>
         {isConfirming && (
           <div
-            className="flex flex-col items-center animate-[pulse_0.8s_ease-in-out_infinite] mt-4"
+            className="flex flex-col items-center mt-4"
             style={{
               color: "#856404" /* Dark amber text */,
               backgroundColor: "#fff3cd" /* Light yellow background */,

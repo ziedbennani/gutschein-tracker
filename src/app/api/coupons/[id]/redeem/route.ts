@@ -38,10 +38,15 @@ export async function PUT(
     }
 
     // Calculate the new values
+    const currentRestValue = currentCoupon.restValue
+      ? Number(currentCoupon.restValue)
+      : 0;
     const newRestValue = tip
-      ? currentCoupon.restValue - usedValue - tip
-      : currentCoupon.restValue - usedValue;
-    const newUsedValue = (currentCoupon.usedValue || 0) + usedValue;
+      ? currentRestValue - usedValue - tip
+      : currentRestValue - usedValue;
+    const newUsedValue =
+      (currentCoupon.usedValue ? Number(currentCoupon.usedValue) : 0) +
+      usedValue;
     const isNowUsed = newRestValue <= 0;
 
     // Begin a transaction to ensure data consistency
@@ -53,8 +58,10 @@ export async function PUT(
           couponId: id,
           employee: employee,
           description: newId
-            ? `GUTSCHEIN WECHSEL: ${id} -> ${newId} | ${usedValue} € eingelöst`
-            : `${usedValue} € eingelöst`,
+            ? `VOLL! ${id} -> ${newId} mit ${Number(usedValue).toFixed(
+                2
+              )} € eingelöst`
+            : `${id} mit ${Number(usedValue).toFixed(2)} € eingelöst`,
           oldSystem: currentCoupon.oldSystem,
           oldId: newId ? id : null,
           firstValue: currentCoupon.restValue,
@@ -66,8 +73,6 @@ export async function PUT(
           extraPayment: newRestValue < 0 ? Math.abs(newRestValue) : null,
         },
       });
-      console.log("currentCoupon : ", currentCoupon);
-      console.log("historyRecord : ", historyRecord);
 
       // If newId is provided, update the coupon ID
       if (newId) {
@@ -89,6 +94,9 @@ export async function PUT(
             restValue: newRestValue > 0 ? newRestValue : 0,
             usedValue: newUsedValue,
             employee: employee,
+            description: `VOLL! ${id} -> ${newId} mit ${Number(
+              usedValue
+            ).toFixed(2)} € eingelöst`,
             location: location,
             used: isNowUsed,
             updatedAt: new Date(),
@@ -110,7 +118,9 @@ export async function PUT(
           data: {
             restValue: newRestValue > 0 ? newRestValue : 0,
             usedValue: newUsedValue,
-            description: `${usedValue} € eingelöst von ${employee}`,
+            description: `${id} mit ${Number(usedValue).toFixed(
+              2
+            )} € eingelöst`,
             employee: employee,
             location: location,
             used: isNowUsed,

@@ -24,6 +24,7 @@ export function DataTableToolbar<TData>({
   const isFiltered = table.getState().columnFilters.length > 0;
   const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
 
   useEffect(() => {
     if (!isRedeemReady) {
@@ -39,14 +40,14 @@ export function DataTableToolbar<TData>({
 
     (function frame() {
       confetti({
-        particleCount: 4,
+        particleCount: 2,
         angle: 60,
         spread: 50,
         origin: { x: 0 },
         colors: colors,
       });
       confetti({
-        particleCount: 4,
+        particleCount: 2,
         angle: 120,
         spread: 50,
         origin: { x: 1 },
@@ -59,8 +60,17 @@ export function DataTableToolbar<TData>({
     })();
   };
 
+  const shakeScreen = () => {
+    setIsShaking(true);
+    setTimeout(() => {
+      setIsShaking(false);
+      schoolPride();
+    }, 1500); // Reset after animation
+  };
+
   return (
     <div className="flex items-center my-4">
+      <div className={isShaking ? "animate-shake" : ""}></div>
       <div className="flex flex-1 items-center space-x-2">
         <div className="relative flex-1 max-w-48">
           <Input
@@ -87,15 +97,17 @@ export function DataTableToolbar<TData>({
         <AddCoupon />
         <Button
           variant="outline"
-          className="flex h-[38px] text-[#57b8d6] bg-[#f0fcff] border-[#dbf6ff] border-2"
+          className="flex h-[38px] bg-gradient-to-r from-[#FDC30A] to-[#FFD700] text-[#333333] font-medium border-[#E0B000] border hover:from-[#FFD700] hover:to-[#FDC30A] hover:shadow-md transition-all"
           onClick={() => {
             setIsRefreshing(true);
-            schoolPride();
+            shakeScreen();
+            // Emit shake event to parent component
+            window.dispatchEvent(new CustomEvent("shakeTable"));
 
             router.refresh();
             setTimeout(() => {
               setIsRefreshing(false);
-            }, 2000);
+            }, 1500);
           }}>
           Refresh
           <RotateCw

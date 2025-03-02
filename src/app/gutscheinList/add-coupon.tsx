@@ -12,6 +12,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -42,7 +43,17 @@ const baseFormSchema = {
   id: z
     .string()
     .min(2)
-    .transform((val) => val.toUpperCase()),
+    .transform((val) => val.toUpperCase())
+    .refine(
+      async (id) => {
+        const response = await fetch(`/api/coupons/check-id?id=${id}`);
+        const { exists } = await response.json();
+        return !exists;
+      },
+      {
+        message: "Nummer schon gegeben",
+      }
+    ),
   employee: z.string().min(3),
 };
 
@@ -107,20 +118,6 @@ export function ProfileForm({
       if (useSimpleSchema) {
         setDialogOpen(false);
         setIsRedeemReady?.(true);
-      }
-
-      // 1. First, validate data (check if ID exists)
-      const checkResponse = await fetch(
-        `/api/coupons/check-id?id=${values.id}`
-      );
-      const { exists } = await checkResponse.json();
-
-      if (exists) {
-        form.setError("id", {
-          type: "manual",
-          message: "Gutschein Nummer schon benutzt ",
-        });
-        return;
       }
 
       // 2. Make the main API call
@@ -206,6 +203,7 @@ export function ProfileForm({
                   <FormControl>
                     <Input placeholder="Nummer" {...field} />
                   </FormControl>
+                  <FormMessage className="text-sm w-max" />
                 </FormItem>
               )}
             />
@@ -359,7 +357,7 @@ export function ProfileForm({
             ) : (
               <div className="flex gap-2 justify-between w-full">
                 <div
-                  className="items-center animate-[pulse_0.8s_ease-in-out_infinite]"
+                  className="items-center"
                   style={{
                     color: "#856404" /* Dark amber text */,
                     backgroundColor: "#fff3cd" /* Light yellow background */,
