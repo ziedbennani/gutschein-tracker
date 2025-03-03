@@ -167,7 +167,11 @@ export function DataTable<TData, TValue>({
   useEffect(() => {
     const handleShake = () => {
       setIsShaking(true);
+<<<<<<< Updated upstream
       setTimeout(() => setIsShaking(false), 1000);
+=======
+      setTimeout(() => setIsShaking(false), 1500);
+>>>>>>> Stashed changes
     };
 
     window.addEventListener("shakeTable", handleShake);

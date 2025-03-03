@@ -80,7 +80,11 @@ body {
   }
 }
 
+<<<<<<< Updated upstream
 @keyframes shake {
+=======
+/* @keyframes shake {
+>>>>>>> Stashed changes
   0%,
   100% {
     transform: translateX(0) translateY(0);
@@ -143,4 +147,8 @@ body {
 
 .animate-shake {
   animation: shake 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+<<<<<<< Updated upstream
 }
+=======
+} */
+>>>>>>> Stashed changes
