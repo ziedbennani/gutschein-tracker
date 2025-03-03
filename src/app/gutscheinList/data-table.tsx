@@ -164,6 +164,16 @@ export function DataTable<TData, TValue>({
     console.log("isRedeemReady", isRedeemReady);
   }, [isRedeemReady]);
 
+  useEffect(() => {
+    const handleShake = () => {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 1500);
+    };
+
+    window.addEventListener("shakeTable", handleShake);
+    return () => window.removeEventListener("shakeTable", handleShake);
+  }, []);
+
   // Wrap the entire component with the AuthWrapper
   return (
     <AuthWrapper>
