@@ -6,13 +6,31 @@ import { Coupon } from "@prisma/client";
 export async function POST(request: Request) {
   try {
     const data = await request.json();
+
+    // Ensure couponType is set
+    if (!data.couponType) {
+      throw new Error("Coupon type is required");
+    }
+
+    // Handle Klein Becher coupon type
+    const isKleinBecher = data.couponType === "klein";
+
+    // Use provided description or generate a default one
+    const description =
+      data.description ||
+      (isKleinBecher
+        ? `NEU! ${data.id} (kl.Becher)`
+        : `NEU! ${data.id} mit ${Number(data.firstValue).toFixed(2)} €`);
+
     const coupon = await prisma.coupon.create({
       data: {
         ...data,
         usedValue: 0,
-        description: `NEU! ${data.id} mit ${Number(data.firstValue).toFixed(
-          2
-        )} €`,
+        // For Klein Becher coupons, set firstValue to 0 or null
+        firstValue: isKleinBecher ? 0 : data.firstValue,
+        restValue: isKleinBecher ? 0 : data.firstValue,
+        description: description,
+        couponType: data.couponType, // Ensure couponType is explicitly set
       },
     });
 
@@ -21,15 +39,14 @@ export async function POST(request: Request) {
       data: {
         couponId: coupon.id,
         employee: data.employee,
-        description: `NEU! ${data.id} mit ${Number(coupon.firstValue).toFixed(
-          2
-        )} €`,
+        description: description,
         oldSystem: false,
         firstValue: coupon.firstValue,
         usedValue: 0,
         restValue: coupon.firstValue,
         used: false,
         location: data.location,
+        couponType: data.couponType, // Ensure couponType is explicitly set
       },
     });
 

@@ -20,8 +20,8 @@ export async function PUT(
 
     const { usedValue, employee, location, tip, newId } = data;
 
-    // Validate required fields
-    if (!usedValue || !employee || !location) {
+    // Validate required fields - for Klein Becher coupons, usedValue can be 0
+    if (usedValue === undefined || !employee || !location) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -37,6 +37,61 @@ export async function PUT(
       return NextResponse.json({ error: "Coupon not found" }, { status: 404 });
     }
 
+    // Check if this is a Klein Becher coupon
+    const isKleinBecher = (currentCoupon as any).couponType === "klein";
+
+    // For Klein Becher coupons, we don't need to calculate values
+    // Just mark it as used
+    if (isKleinBecher) {
+      // Begin a transaction to ensure data consistency
+      const result = await prisma.$transaction(async (tx) => {
+        console.log("begin transaction for Klein Becher");
+
+        // Create history record
+        const historyRecord = await tx.couponHistory.create({
+          data: {
+            couponId: id,
+            employee: employee,
+            description: `kl.Becher G. ${id} eingelöst`,
+            oldSystem: currentCoupon.oldSystem,
+            oldId: newId ? id : null,
+            firstValue: 0,
+            usedValue: 0,
+            restValue: 0,
+            used: true,
+            location: location,
+            couponType: (currentCoupon as any).couponType,
+          },
+        });
+
+        // Update Coupon
+        const updatedCoupon = await tx.coupon.update({
+          where: { id },
+          data: {
+            description: `kl.Becher G. ${id} eingelöst`,
+            employee: employee,
+            location: location,
+            used: true,
+            updatedAt: new Date(),
+          },
+        });
+
+        return {
+          historyRecord,
+          updatedCoupon,
+        };
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          couponId: result.updatedCoupon.id,
+          historyId: result.historyRecord.id,
+        },
+      });
+    }
+
+    // For regular value coupons, proceed with the existing logic
     // Calculate the new values
     const currentRestValue = currentCoupon.restValue
       ? Number(currentCoupon.restValue)
@@ -44,10 +99,13 @@ export async function PUT(
     const newRestValue = tip
       ? currentRestValue - usedValue - tip
       : currentRestValue - usedValue;
+    console.log("newRestValue : ", newRestValue);
     const newUsedValue =
       (currentCoupon.usedValue ? Number(currentCoupon.usedValue) : 0) +
       usedValue;
-    const isNowUsed = newRestValue <= 0;
+    console.log("newUsedValue : ", newUsedValue);
+    const isNowUsed = Math.abs(newRestValue) < 0.01; // Consider values less than 0.01 as effectively zero
+    console.log("isNowUsed : ", isNowUsed);
 
     // Begin a transaction to ensure data consistency
     const result = await prisma.$transaction(async (tx) => {
@@ -71,6 +129,7 @@ export async function PUT(
           location: location,
           tip: tip,
           extraPayment: newRestValue < 0 ? Math.abs(newRestValue) : null,
+          couponType: (currentCoupon as any).couponType,
         },
       });
 
@@ -103,6 +162,7 @@ export async function PUT(
             oldId: id,
             tip: tip,
             extraPayment: newRestValue < 0 ? Math.abs(newRestValue) : null,
+            couponType: (currentCoupon as any).couponType,
           },
         });
 
@@ -127,6 +187,7 @@ export async function PUT(
             updatedAt: new Date(),
             tip: tip,
             extraPayment: newRestValue < 0 ? Math.abs(newRestValue) : null,
+            couponType: (currentCoupon as any).couponType,
           },
         });
         console.log("updatedCoupon else : ", updatedCoupon);

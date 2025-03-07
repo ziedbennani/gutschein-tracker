@@ -6,31 +6,78 @@ export async function POST(request: Request) {
   try {
     const data = await request.json();
     console.log("data from old coupon", data);
-    const coupon = await prisma.coupon.create({
-      data: {
-        ...data,
-        restValue: data.restValue,
-        description: `ALT! ${data.id} mit ${Number(data.restValue).toFixed(
-          2
-        )}€`,
-      },
+
+    // Ensure all required fields are present
+    const couponData = {
+      ...data,
+      description:
+        data.couponType === "klein"
+          ? `kl.Becher G. von ${new Date(
+              data.createdAt
+            ).getFullYear()} gespeichert`
+          : `ALTER G. mit ${data.restValue} € gespeichert`,
+      // Set default values for required fields if not provided
+      employee: data.employee || " ",
+      oldSystem: true,
+      used: data.used !== undefined ? data.used : false,
+      couponType: data.couponType,
+      // For klein coupons, ensure numeric fields are set properly
+      firstValue:
+        data.firstValue !== undefined
+          ? data.firstValue
+          : data.couponType === "klein"
+          ? 0
+          : null,
+      usedValue:
+        data.usedValue !== undefined
+          ? data.usedValue
+          : data.couponType === "klein"
+          ? 0
+          : null,
+      restValue:
+        data.restValue !== undefined
+          ? data.restValue
+          : data.couponType === "klein"
+          ? 0
+          : null,
+    };
+
+    // Use a transaction to create both the coupon and its history entry
+    const result = await prisma.$transaction(async (tx) => {
+      // Create the coupon first
+      const coupon = await tx.coupon.create({
+        data: couponData,
+      });
+
+      // Then create a history entry for this coupon
+      const historyEntry = await tx.couponHistory.create({
+        data: {
+          couponId: coupon.id,
+          employee: coupon.employee,
+          description:
+            data.couponType === "klein"
+              ? `kl.Becher G. von ${new Date(
+                  coupon.createdAt
+                ).getFullYear()} gespeichert `
+              : `ALTER G. mit ${coupon.restValue} € gespeichert`,
+          oldSystem: coupon.oldSystem,
+          oldId: coupon.oldId,
+          firstValue: coupon.firstValue,
+          usedValue: coupon.usedValue,
+          restValue: coupon.restValue,
+          used: coupon.used,
+          location: coupon.location,
+          extraPayment: coupon.extraPayment,
+          tip: coupon.tip,
+          couponType: coupon.couponType,
+        },
+      });
+
+      return { coupon, historyEntry };
     });
 
-    // Create history record for old coupon
-    await prisma.couponHistory.create({
-      data: {
-        couponId: coupon.id,
-        employee: data.employee,
-        description: `ALT! ${data.id} mit ${Number(data.restValue).toFixed(
-          2
-        )}€`,
-        oldSystem: true,
-        restValue: coupon.restValue,
-        used: false,
-      },
-    });
-
-    console.log("old coupon created :", coupon);
+    console.log("old coupon created:", result.coupon);
+    console.log("history entry created:", result.historyEntry);
 
     // Revalidate the coupons list page after creating an old coupon
     revalidatePath("/gutscheinList");
@@ -39,7 +86,8 @@ export async function POST(request: Request) {
       {
         success: true,
         data: {
-          coupon: coupon,
+          coupon: result.coupon,
+          historyEntry: result.historyEntry,
         },
       },
       {

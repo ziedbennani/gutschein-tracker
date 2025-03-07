@@ -17,8 +17,8 @@ model Coupon {
   id           String   @id @default(cuid())
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  employee     String
-  description  String
+  employee     String?
+  description  String?
   oldSystem    Boolean
   oldId        String?  
   firstValue   Decimal? @db.Decimal(10,2)
@@ -28,6 +28,7 @@ model Coupon {
   location     String?
   extraPayment Decimal? @db.Decimal(10,2)
   tip          Decimal? @db.Decimal(10,2)
+  couponType   String   
 
   couponHistory CouponHistory[] @relation("CouponHistory")
 }
@@ -35,8 +36,8 @@ model Coupon {
 model CouponHistory {
   id           String   @id @default(cuid())
   modifiedAt   DateTime @default(now())
-  employee     String
-  description  String
+  employee     String?
+  description  String?
   oldSystem    Boolean
   oldId        String?  
   firstValue   Decimal? @db.Decimal(10,2)
@@ -46,6 +47,7 @@ model CouponHistory {
   location     String?
   extraPayment Decimal? @db.Decimal(10,2)
   tip          Decimal? @db.Decimal(10,2)
+  couponType   String   
 
   coupon      Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade, name: "CouponHistory")
   couponId    String

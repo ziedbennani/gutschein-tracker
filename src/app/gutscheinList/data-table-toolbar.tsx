@@ -14,12 +14,14 @@ interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   data: TData[];
   isRedeemReady: boolean;
+  onRefresh?: () => void;
   // createdCoupon: Coupon | null;
 }
 
 export function DataTableToolbar<TData>({
   table,
   isRedeemReady,
+  onRefresh,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const router = useRouter();
@@ -65,12 +67,12 @@ export function DataTableToolbar<TData>({
     setTimeout(() => {
       setIsShaking(false);
       schoolPride();
+      console.log("shaking", isShaking);
     }, 1500); // Reset after animation
   };
 
   return (
-    <div className="flex items-center my-4">
-      <div className={isShaking ? "animate-shake" : ""}></div>
+    <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <div className="relative flex-1 max-w-48">
           <Input
@@ -95,27 +97,32 @@ export function DataTableToolbar<TData>({
         )}
 
         <AddCoupon />
-        <Button
-          variant="outline"
-          className="flex h-[38px] bg-gradient-to-r from-[#FDC30A] to-[#FFD700] text-[#333333] font-medium border-[#E0B000] border hover:from-[#FFD700] hover:to-[#FDC30A] hover:shadow-md transition-all"
-          onClick={() => {
-            setIsRefreshing(true);
-            shakeScreen();
-            // Emit shake event to parent component
-            window.dispatchEvent(new CustomEvent("shakeTable"));
+        <div className="flex flex-col items-end">
+          <Button
+            variant="outline"
+            className="flex h-[38px] bg-gradient-to-r from-[#FDC30A] to-[#FFD700] text-[#333333] font-medium border-[#E0B000] border hover:from-[#FFD700] hover:to-[#FDC30A] hover:shadow-md transition-all"
+            onClick={() => {
+              setIsRefreshing(true);
+              shakeScreen();
+              // Emit shake event to parent component
+              window.dispatchEvent(new CustomEvent("shakeTable"));
 
-            router.refresh();
-            setTimeout(() => {
-              setIsRefreshing(false);
-            }, 1500);
-          }}>
-          Refresh
-          <RotateCw
-            className={`h-4 w-4 ${
-              isRefreshing ? "animate-spin [animation-duration:0.5s]" : ""
-            }`}
-          />
-        </Button>
+              router.refresh();
+              // Call the onRefresh callback to update lastRefreshTime in parent
+              onRefresh?.();
+
+              setTimeout(() => {
+                setIsRefreshing(false);
+              }, 1500);
+            }}>
+            Refresh
+            <RotateCw
+              className={`h-4 w-4 ml-2 ${
+                isRefreshing ? "animate-spin [animation-duration:0.5s]" : ""
+              }`}
+            />
+          </Button>
+        </div>
       </div>
     </div>
   );

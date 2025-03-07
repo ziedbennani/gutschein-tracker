@@ -18,6 +18,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { ProfileForm } from "./add-coupon";
@@ -26,6 +27,7 @@ import { Coupon } from "./columns";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   Table,
@@ -132,14 +134,35 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
+  const router = useRouter();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
   const [isOldCouponDialogOpen, setIsOldCouponDialogOpen] = useState(false);
+  const [couponType, setCouponType] = useState<string>("value");
   const [isRedeemReady, setIsRedeemReady] = useState(false);
   const [createdCoupon, setCreatedCoupon] = useState<Coupon | null>(null);
   const [isShaking, setIsShaking] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefreshTime, setLastRefreshTime] = useState<Date>(new Date());
+  const [nextRefreshTime, setNextRefreshTime] = useState<Date>(
+    new Date(Date.now() + 7200000)
+  ); // 2 hours in milliseconds
+
+  const [typeDialogOpen, setTypeDialogOpen] = useState(false);
+
+  const handleValueCouponSelect = () => {
+    setCouponType("value");
+    setTypeDialogOpen(false);
+    setIsOldCouponDialogOpen(true);
+  };
+
+  const handleKleinBecherSelect = () => {
+    setCouponType("klein");
+    setTypeDialogOpen(false);
+    setIsOldCouponDialogOpen(true);
+  };
   const table = useReactTable({
     data,
     columns,
@@ -174,16 +197,84 @@ export function DataTable<TData, TValue>({
     return () => window.removeEventListener("shakeTable", handleShake);
   }, []);
 
+  // Set up automatic refresh every two hours, but only between 10 AM and 7 PM
+  useEffect(() => {
+    // Function to perform the refresh
+    const performRefresh = () => {
+      const currentTime = new Date();
+      const currentHour = currentTime.getHours();
+
+      // Only refresh if it's between 10 AM and 7 PM
+      if (currentHour >= 10 && currentHour < 20) {
+        console.log("Auto-refreshing data after 10 AM...");
+        setIsRefreshing(true);
+
+        // Trigger the shake animation for visual feedback
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 1000);
+
+        router.refresh();
+
+        // Update the last refresh time
+        setLastRefreshTime(new Date());
+
+        // Calculate and update the next refresh time (2 hours from now)
+        const nextTime = new Date();
+        nextTime.setHours(nextTime.getHours() + 2);
+        setNextRefreshTime(nextTime);
+
+        // Reset the refreshing state after a delay
+        setTimeout(() => {
+          setIsRefreshing(false);
+        }, 1500);
+      } else {
+        console.log(
+          "Skipping auto-refresh outside business hours",
+          isRefreshing,
+          lastRefreshTime,
+          nextRefreshTime
+        );
+
+        // If it's before 10 AM, set the next refresh time to 10 AM today
+        const nextTime = new Date();
+        nextTime.setHours(10, 0, 0, 0);
+
+        // If it's already past 7 PM, set it to 10 AM tomorrow
+        if (currentHour >= 19) {
+          nextTime.setDate(nextTime.getDate() + 1);
+        }
+
+        setNextRefreshTime(nextTime);
+      }
+    };
+
+    // Perform an initial check when the component mounts
+    performRefresh();
+
+    // Set up the interval for every 2 hours (7,200,000 ms)
+    const refreshInterval = setInterval(performRefresh, 7200000);
+
+    // Clean up the interval when component unmounts
+    return () => clearInterval(refreshInterval);
+  }, [router]);
+
   // Wrap the entire component with the AuthWrapper
   return (
     <AuthWrapper>
       <div className={isShaking ? "animate-shake" : ""}>
         <div>
-          <div className="flex items-center py-4">
+          <div className="flex items-center py-7">
             <DataTableToolbar
               table={table}
               data={data}
               isRedeemReady={isRedeemReady}
+              onRefresh={() => {
+                setLastRefreshTime(new Date());
+                // Calculate and update the next refresh time (2 hours from now)
+                const nextTime = new Date();
+                nextTime.setHours(nextTime.getHours() + 2);
+                setNextRefreshTime(nextTime);
+              }}
               // createdCoupon={createdCoupon}
             />
           </div>
@@ -228,13 +319,35 @@ export function DataTable<TData, TValue>({
                     <TableCell
                       colSpan={columns.length}
                       className="h-24 text-center">
-                      <Button
-                        onClick={() => setIsOldCouponDialogOpen(true)}
-                        variant="outline"
-                        className="mx-auto bg-[#FDC30A] hover:bg-[#e3af09] text-black">
-                        Alten Gutschein einlösen
-                      </Button>
-
+                      <Dialog
+                        open={typeDialogOpen}
+                        onOpenChange={setTypeDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="mx-auto bg-[#FDC30A] hover:bg-[#e3af09] text-black">
+                            Alten Gutschein einlösen
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="p-5 gap-5 max-w-[95vw] w-[496px] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit">
+                          <DialogHeader>
+                            <DialogTitle>Gutschein-Typ wählen</DialogTitle>
+                            <Separator className="my-3" />
+                          </DialogHeader>
+                          <div className="grid grid-cols-2 gap-4">
+                            <Button
+                              onClick={handleValueCouponSelect}
+                              className="h-12 w-full flex flex-col bg-gradient-to-r from-[#FDC30A] to-[#FFD700] text-[#333333] font-semibold border-[#E0B000] border">
+                              Normal
+                            </Button>
+                            <Button
+                              onClick={handleKleinBecherSelect}
+                              className="h-12 w-full flex flex-col bg-gradient-to-r from-[#FFD700] to-[#FDC30A] text-[#333333] font-semibold border-[#E0B000] border">
+                              Klein Becher
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                       <Dialog
                         open={isOldCouponDialogOpen}
                         onOpenChange={setIsOldCouponDialogOpen}>
@@ -243,7 +356,7 @@ export function DataTable<TData, TValue>({
                           className="p-5 gap-5 max-w-[95vw] w-[496px] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
                           aria-describedby={undefined}>
                           <DialogHeader>
-                            <DialogTitle>Alten Gutschein eintragen</DialogTitle>
+                            <DialogTitle>Gutschein Daten eintragen</DialogTitle>
                             <Separator className="my-4" />
                           </DialogHeader>
                           <ProfileForm
@@ -251,6 +364,7 @@ export function DataTable<TData, TValue>({
                             setDialogOpen={setIsOldCouponDialogOpen}
                             setCreatedCoupon={setCreatedCoupon}
                             useSimpleSchema={true}
+                            couponType={couponType}
                           />
                         </DialogContent>
                       </Dialog>
@@ -274,14 +388,16 @@ export function DataTable<TData, TValue>({
                                           {createdCoupon.id}
                                         </span>
                                       </span>
-                                      <span className="text-sm font-medium">
-                                        Betrag{" "}
-                                        <span className="text-base font-bold">
-                                          {formatCurrency(
-                                            createdCoupon.restValue
-                                          )}{" "}
+                                      {createdCoupon.couponType === "value" && (
+                                        <span className="text-sm font-medium">
+                                          Betrag{" "}
+                                          <span className="text-base font-bold">
+                                            {formatCurrency(
+                                              createdCoupon.restValue
+                                            )}{" "}
+                                          </span>
                                         </span>
-                                      </span>
+                                      )}
                                     </div>
                                     <Separator className="my-3" />
                                   </DialogTitle>
@@ -292,6 +408,7 @@ export function DataTable<TData, TValue>({
                                   onCouponRedeemed={() => {}}
                                   setIsRedeemReady={setIsRedeemReady}
                                   setCreatedCoupon={setCreatedCoupon}
+                                  couponType={couponType}
                                 />
                               </div>
                             </DialogContent>

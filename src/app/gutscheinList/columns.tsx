@@ -29,6 +29,7 @@ export type Coupon = {
   oldSystem: boolean;
   used: boolean;
   location?: "Braugasse" | "Transit" | "Pit Stop" | "Wirges";
+  couponType: "value" | "klein";
 };
 
 // Add RedeemCouponDialog component
@@ -60,12 +61,14 @@ const RedeemCouponDialog = ({
                   Nummer{" "}
                   <span className="text-base font-bold">{coupon.id}</span>
                 </span>
-                <span className="text-sm font-medium">
-                  Betrag{" "}
-                  <span className="text-base font-bold">
-                    {formatCurrency(coupon.restValue)}{" "}
+                {coupon.couponType === "value" && (
+                  <span className="text-sm font-medium">
+                    Betrag{" "}
+                    <span className="text-base font-bold">
+                      {formatCurrency(coupon.restValue)}{" "}
+                    </span>
                   </span>
-                </span>
+                )}
               </div>
               <Separator className="my-3" />
             </DialogTitle>
@@ -75,6 +78,7 @@ const RedeemCouponDialog = ({
             coupon={coupon}
             setDialogOpen={setIsOpen}
             onCouponRedeemed={onCouponRedeemed}
+            couponType={coupon.couponType}
           />
         </div>
       </DialogContent>
@@ -91,24 +95,40 @@ export const columns: ColumnDef<Coupon>[] = [
     accessorKey: "firstValue",
     header: "Erster Betrag",
     cell: (row) => {
+      const couponType = row.row.original.couponType;
       const value = row.getValue() as number;
-      return value ? formatCurrency(value) : "-";
+      return couponType === "klein"
+        ? "klein Becher "
+        : value
+        ? formatCurrency(value)
+        : "-";
     },
   },
   {
     accessorKey: "usedValue",
     header: "Eingelöst",
     cell: (row) => {
+      const couponType = row.row.original.couponType;
       const value = row.getValue() as number;
-      return formatCurrency(value);
+      return couponType === "value"
+        ? formatCurrency(value)
+        : row.row.original.used === true
+        ? "klein Becher"
+        : "-";
     },
   },
   {
     accessorKey: "restValue",
     header: "Aktuell",
     cell: (row) => {
+      const couponType = row.row.original.couponType;
       const value = row.getValue() as number;
-      return formatCurrency(value);
+      console.log("value", value);
+      return couponType === "value"
+        ? formatCurrency(value)
+        : row.row.original.used === false
+        ? "klein Becher"
+        : "-";
     },
   },
   {
@@ -165,7 +185,7 @@ export const columns: ColumnDef<Coupon>[] = [
       }
 
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-fit">
           <Button
             variant="secondary"
             size="sm"
