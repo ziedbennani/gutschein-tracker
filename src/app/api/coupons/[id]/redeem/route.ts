@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../../../lib/db";
+import { Coupon, CouponHistory } from "@prisma/client";
+
+// Define the valid coupon types
+type CouponType = "value" | "klein";
 
 // This handles PUT requests to /api/coupons/[id]/redeem
 export async function PUT(
@@ -38,7 +42,7 @@ export async function PUT(
     }
 
     // Check if this is a Klein Becher coupon
-    const isKleinBecher = (currentCoupon as any).couponType === "klein";
+    const isKleinBecher = currentCoupon.couponType === "klein";
 
     // For Klein Becher coupons, we don't need to calculate values
     // Just mark it as used
@@ -60,7 +64,7 @@ export async function PUT(
             restValue: 0,
             used: true,
             location: location,
-            couponType: (currentCoupon as any).couponType,
+            couponType: currentCoupon.couponType,
           },
         });
 
@@ -129,7 +133,7 @@ export async function PUT(
           location: location,
           tip: tip,
           extraPayment: newRestValue < 0 ? Math.abs(newRestValue) : null,
-          couponType: (currentCoupon as any).couponType,
+          couponType: currentCoupon.couponType,
         },
       });
 
@@ -162,7 +166,7 @@ export async function PUT(
             oldId: id,
             tip: tip,
             extraPayment: newRestValue < 0 ? Math.abs(newRestValue) : null,
-            couponType: (currentCoupon as any).couponType,
+            couponType: currentCoupon.couponType,
           },
         });
 
@@ -187,7 +191,7 @@ export async function PUT(
             updatedAt: new Date(),
             tip: tip,
             extraPayment: newRestValue < 0 ? Math.abs(newRestValue) : null,
-            couponType: (currentCoupon as any).couponType,
+            couponType: currentCoupon.couponType,
           },
         });
         console.log("updatedCoupon else : ", updatedCoupon);

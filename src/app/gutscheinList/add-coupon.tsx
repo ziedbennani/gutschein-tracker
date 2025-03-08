@@ -33,10 +33,54 @@ import {
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
-import { Coupon } from "./columns";
 import { Icons } from "@/components/icons";
 import { Label } from "@/components/ui/label";
-// import { formatCurrency } from "./utils";
+
+// Define the Coupon interface
+interface Coupon {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  employee: string;
+  description: string;
+  oldSystem: boolean;
+  firstValue: number | null;
+  usedValue: number | null;
+  restValue: number;
+  used: boolean;
+  location: string | null;
+  extraPayment: number | null;
+  oldId: string | null;
+  tip: number | null;
+  couponType: string;
+}
+
+// Define request data types
+interface BaseRequestData {
+  id: string;
+  oldSystem: boolean;
+  used: boolean;
+  description: string;
+  employee?: string;
+  location?: string;
+  createdAt?: Date;
+}
+
+interface ValueCouponRequestData extends Omit<BaseRequestData, "couponType"> {
+  couponType: "value";
+  firstValue?: number;
+  restValue: number;
+  usedValue?: number;
+}
+
+interface KleinCouponRequestData extends Omit<BaseRequestData, "couponType"> {
+  couponType: "klein";
+  firstValue: number;
+  usedValue: number;
+  restValue: number;
+}
+
+type RequestData = ValueCouponRequestData | KleinCouponRequestData;
 
 // Create the full schema for the original use case
 const newCoupon = z.object({
@@ -196,7 +240,7 @@ export function ProfileForm({
     mode: "onSubmit",
   });
 
-  async function handleSubmit(values: z.infer<typeof formSchema>) {
+  async function handleSubmit(formValues: z.infer<typeof formSchema>) {
     setIsLoading(true);
 
     try {
@@ -205,55 +249,65 @@ export function ProfileForm({
         setIsRedeemReady?.(true);
       }
 
-      // Prepare request data based on schema type
-      const requestData: Record<string, any> = {
-        ...values,
+      // Initialize request data with common fields
+      const baseData: Omit<BaseRequestData, "couponType"> = {
+        id: formValues.id,
         oldSystem: useSimpleSchema,
         used: false,
-        couponType: values.couponType,
-        // Ensure employee is set (required by the database)
+        description: "", // Will be set below
       };
 
-      // Set description based on coupon type
-      if (values.couponType === "klein") {
-        requestData.description = useSimpleSchema
-          ? `ALT! ${values.id} (Kl. Becher) gespeichert`
-          : `NEU! ${values.id} (Kl. Becher) gespeichert`;
+      // Initialize specific coupon type data
+      let requestData: RequestData;
+      if (formValues.couponType === "klein") {
+        requestData = {
+          ...baseData,
+          couponType: "klein",
+          firstValue: 0,
+          usedValue: 0,
+          restValue: 0,
+        };
 
-        // For klein coupons, set numeric values to 0
-        requestData.firstValue = 0;
-        requestData.usedValue = 0;
-        requestData.restValue = 0;
-      } else {
-        const valueToShow = useSimpleSchema
-          ? (values as z.infer<typeof oldCoupon>).restValue
-          : (values as z.infer<typeof newCoupon>).firstValue;
         requestData.description = useSimpleSchema
-          ? `ALT! ${values.id} mit ${Number(valueToShow).toFixed(2)}€`
-          : `NEU! ${values.id} mit ${Number(valueToShow).toFixed(2)} €`;
-      }
-
-      // Handle restValue based on coupon type and schema
-      if (couponType === "klein") {
-        // Klein Becher has no monetary value, but we set it to 0 for database requirements
-        requestData.restValue = 0;
+          ? `ALT! ${formValues.id} (Kl. Becher) gespeichert`
+          : `NEU! ${formValues.id} (Kl. Becher) gespeichert`;
 
         // For simple schema with klein coupon, include createdAt
         if (useSimpleSchema) {
           requestData.createdAt = (
-            values as z.infer<typeof oldSmallCoupon>
+            formValues as z.infer<typeof oldSmallCoupon>
           ).createdAt;
         }
-      } else if (useSimpleSchema) {
-        // For simple schema with value coupon, use restValue directly
-        requestData.restValue = (values as z.infer<typeof oldCoupon>).restValue;
       } else {
-        // For full schema with value coupon, set restValue to firstValue
-        requestData.restValue =
-          (values as z.infer<typeof newCoupon>).firstValue || undefined;
+        // Handle value coupon
+        const valueToShow = useSimpleSchema
+          ? (formValues as z.infer<typeof oldCoupon>).restValue
+          : (formValues as z.infer<typeof newCoupon>).firstValue;
+
+        requestData = {
+          ...baseData,
+          couponType: "value",
+          restValue: valueToShow || 0,
+          firstValue: useSimpleSchema ? undefined : valueToShow,
+          usedValue: 0,
+        };
+
+        requestData.description = useSimpleSchema
+          ? `ALT! ${formValues.id} mit ${Number(valueToShow).toFixed(2)}€`
+          : `NEU! ${formValues.id} mit ${Number(valueToShow).toFixed(2)} €`;
       }
 
-      // 2. Make the main API call
+      // Add employee and location for non-simple schema
+      if (!useSimpleSchema) {
+        requestData.employee = (
+          formValues as z.infer<typeof newCoupon>
+        ).employee;
+        requestData.location = (
+          formValues as z.infer<typeof newCoupon>
+        ).location;
+      }
+
+      // Make the API call
       const response = await fetch(
         useSimpleSchema ? "/api/coupons/old-coupon" : "/api/coupons",
         {
@@ -284,7 +338,7 @@ export function ProfileForm({
           variant: "success",
           description: (
             <span>
-              Der Gutschein <strong>{values.id}</strong> wurde erfolgreich
+              Der Gutschein <strong>{formValues.id}</strong> wurde erfolgreich
               erstellt.
             </span>
           ),
@@ -426,7 +480,7 @@ export function ProfileForm({
                       defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Where are u baby" />
+                          <SelectValue placeholder="Wo bist du baby ?" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -527,9 +581,9 @@ export function ProfileForm({
                 <div
                   className="items-center"
                   style={{
-                    color: "#856404" /* Dark amber text */,
-                    backgroundColor: "#fff3cd" /* Light yellow background */,
-                    border: "1px solid #ffeeba" /* Soft yellow border */,
+                    color: "#856404",
+                    backgroundColor: "#fff3cd",
+                    border: "1px solid #ffeeba",
                     padding: "5px",
                     borderRadius: "5px",
                     display: "inline-block",
@@ -608,7 +662,7 @@ const AddCoupon = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent
           onPointerDownOutside={(e) => e.preventDefault()}
-          className="p-4 gap-4 max-w-[95vw] w-full mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
+          className="p-4 gap-4 max-w-[95vw] w-[500px] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
           aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>

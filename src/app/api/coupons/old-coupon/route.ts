@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       ...data,
       description:
         data.couponType === "klein"
-          ? `kl.Becher G. von ${new Date(
+          ? `kl.Becher von ${new Date(
               data.createdAt
             ).getFullYear()} gespeichert`
           : `ALTER G. mit ${data.restValue} € gespeichert`,
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
           employee: coupon.employee,
           description:
             data.couponType === "klein"
-              ? `kl.Becher G. von ${new Date(
+              ? `kl.Becher von ${new Date(
                   coupon.createdAt
                 ).getFullYear()} gespeichert `
               : `ALTER G. mit ${coupon.restValue} € gespeichert`,

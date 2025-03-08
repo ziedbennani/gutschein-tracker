@@ -415,7 +415,7 @@ export function DataTable<TData, TValue>({
                           ) : (
                             <DialogContent
                               className="flex p-4 [&>button]:hidden max-w-[95vw] w-[496px] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto "
-                              style={{ width: "518.84px", height: "300.75px" }}
+                              // style={{ width: "518.84px", height: "300.75px" }}
                               onPointerDownOutside={(e) => e.preventDefault()}
                               aria-describedby={undefined}>
                               <div className="flex-1 flex items-center justify-center">

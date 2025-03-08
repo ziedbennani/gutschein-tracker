@@ -334,7 +334,7 @@ export function RedeemForm({
                         defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Where are u baby" />
+                            <SelectValue placeholder="Wo bist du baby ?" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
