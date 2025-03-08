@@ -140,7 +140,7 @@ export const columns: ColumnDef<Coupon>[] = [
     header: "Aktuell",
     cell: (row) => {
       const couponType = row.row.original.couponType;
-      console.log("couponType", couponType);
+      console.log("row", row.row.original);
       const value = row.getValue() as number;
       console.log("value", value);
       return couponType === "value"
