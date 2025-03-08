@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../../../lib/db";
-import { Coupon, CouponHistory } from "@prisma/client";
-
-// Define the valid coupon types
-type CouponType = "value" | "klein";
 
 // This handles PUT requests to /api/coupons/[id]/redeem
 export async function PUT(

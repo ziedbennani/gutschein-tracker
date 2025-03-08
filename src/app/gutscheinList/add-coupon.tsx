@@ -165,12 +165,12 @@ const oldSmallCoupon = z.object({
   couponType: z.enum(["value", "klein"]),
 });
 
-// Define a type for the form values based on the schema
+// Define FormValues type based on all possible form schemas
 type FormValues =
-  | z.infer<typeof newCoupon>
   | z.infer<typeof oldCoupon>
+  | z.infer<typeof oldSmallCoupon>
   | z.infer<typeof newSmallCoupon>
-  | z.infer<typeof oldSmallCoupon>;
+  | z.infer<typeof newCoupon>;
 
 interface ProfileFormProps {
   setCreatedCoupon?: (coupon: Coupon | null) => void;
@@ -203,11 +203,11 @@ export function ProfileForm({
   const router = useRouter();
 
   // Create default values based on the schema type
-  const getDefaultValues = () => {
+  const getDefaultValues = (): FormValues => {
     if (useSimpleSchema && couponType === "value") {
       return {
         id: "",
-        restValue: undefined,
+        restValue: 0,
         couponType: "value" as const,
       };
     } else if (useSimpleSchema && couponType === "klein") {
@@ -220,15 +220,15 @@ export function ProfileForm({
       return {
         id: "",
         employee: "",
-        location: undefined,
+        location: "Braugasse" as const,
         couponType: "klein" as const,
       };
     } else {
       return {
         id: "",
-        firstValue: undefined,
+        firstValue: 0,
         employee: "",
-        location: undefined,
+        location: "Braugasse" as const,
         couponType: "value" as const,
       };
     }
@@ -236,7 +236,7 @@ export function ProfileForm({
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: getDefaultValues() as any,
+    defaultValues: getDefaultValues(),
     mode: "onSubmit",
   });
 
