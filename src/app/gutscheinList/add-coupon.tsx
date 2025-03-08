@@ -98,8 +98,8 @@ const newCoupon = z.object({
         message: "Nummer schon gegeben",
       }
     ),
-  firstValue: z.number().min(1),
-  location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges"]),
+  firstValue: z.number().min(1).optional(),
+  location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges"]).optional(),
   employee: z.string().min(3),
   couponType: z.enum(["value", "klein"]),
 });
@@ -120,7 +120,7 @@ const oldCoupon = z.object({
         message: "Nummer schon gegeben",
       }
     ),
-  restValue: z.number().min(1),
+  restValue: z.number().min(1).optional(),
   couponType: z.enum(["value", "klein"]),
 });
 
@@ -140,7 +140,7 @@ const newSmallCoupon = z.object({
         message: "Nummer schon gegeben",
       }
     ),
-  location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges"]),
+  location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges"]).optional(),
   employee: z.string().min(3),
   couponType: z.enum(["value", "klein"]),
 });
@@ -207,7 +207,7 @@ export function ProfileForm({
     if (useSimpleSchema && couponType === "value") {
       return {
         id: "",
-        restValue: 0,
+        restValue: undefined,
         couponType: "value" as const,
       };
     } else if (useSimpleSchema && couponType === "klein") {
@@ -220,15 +220,15 @@ export function ProfileForm({
       return {
         id: "",
         employee: "",
-        location: "Braugasse" as const,
+        location: undefined,
         couponType: "klein" as const,
       };
     } else {
       return {
         id: "",
-        firstValue: 0,
+        firstValue: undefined,
         employee: "",
-        location: "Braugasse" as const,
+        location: undefined,
         couponType: "value" as const,
       };
     }
