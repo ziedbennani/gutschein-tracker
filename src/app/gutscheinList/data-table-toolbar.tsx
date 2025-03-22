@@ -42,16 +42,16 @@ export function DataTableToolbar<TData>({
 
     (function frame() {
       confetti({
-        particleCount: 2,
+        particleCount: 10,
         angle: 60,
-        spread: 50,
+        spread: 100,
         origin: { x: 0 },
         colors: colors,
       });
       confetti({
-        particleCount: 2,
+        particleCount: 10,
         angle: 120,
-        spread: 50,
+        spread: 100,
         origin: { x: 1 },
         colors: colors,
       });
@@ -68,7 +68,7 @@ export function DataTableToolbar<TData>({
       setIsShaking(false);
       schoolPride();
       console.log("shaking", isShaking);
-    }, 1500); // Reset after animation
+    }, 1000); // Reset after animation
   };
 
   return (
@@ -113,12 +113,12 @@ export function DataTableToolbar<TData>({
 
               setTimeout(() => {
                 setIsRefreshing(false);
-              }, 1500);
+              }, 1000);
             }}>
             Refresh
             <RotateCw
               className={`h-4 w-4 ml-2 ${
-                isRefreshing ? "animate-spin [animation-duration:0.5s]" : ""
+                isRefreshing ? "animate-spin [animation-duration:0.3s]" : ""
               }`}
             />
           </Button>

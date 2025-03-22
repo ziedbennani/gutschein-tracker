@@ -17,10 +17,7 @@ export async function POST(request: Request) {
 
     // Use provided description or generate a default one
     const description =
-      data.description ||
-      (isKleinBecher
-        ? `NEU! ${data.id} (kl.Becher)`
-        : `NEU! ${data.id} mit ${Number(data.firstValue).toFixed(2)} €`);
+      data.description || (isKleinBecher ? `NEU!  kl.Becher` : `NEU!`);
 
     const coupon = await prisma.coupon.create({
       data: {

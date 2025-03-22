@@ -34,7 +34,7 @@ import { formatCurrency } from "./utils";
 
 const formSchema = z
   .object({
-    usedValue: z.number().optional(),
+    usedValue: z.number(),
     employee: z.string().min(3),
     location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges"]),
     tip: z.number().nullable().optional(),
@@ -133,7 +133,6 @@ export function RedeemForm({
       }
 
       // 2. Update UI state (close dialogs, reset forms)
-      setDialogOpen(false);
       setIsRedeemReady?.(false);
       setCreatedCoupon?.(null);
 
@@ -163,6 +162,7 @@ export function RedeemForm({
         description: "Der Gutschein konnte nicht eingelöst werden.",
       });
     } finally {
+      setDialogOpen(false);
       setIsLoading(false);
     }
   }
@@ -307,7 +307,7 @@ export function RedeemForm({
                   render={({ field, fieldState }) => (
                     <FormItem className="flex-1">
                       <FormLabel
-                        className={cn(fieldState.invalid && "text-red-500")}>
+                        className={cn(fieldState.invalid && "text-red-500 ")}>
                         Mitarbeiter
                       </FormLabel>
                       <FormControl>
@@ -326,7 +326,7 @@ export function RedeemForm({
                         coupon.couponType === "value" ? "mt-2" : "flex-1"
                       )}>
                       <FormLabel
-                        className={cn(fieldState.invalid && "text-red-500")}>
+                        className={cn(fieldState.invalid && "text-red-500 ")}>
                         Laden
                       </FormLabel>
                       <Select
@@ -334,7 +334,7 @@ export function RedeemForm({
                         defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Wo bist du baby ?" />
+                            <SelectValue placeholder="Laden auswählen" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -429,21 +429,19 @@ export function RedeemForm({
                   <div className="flex gap-2 justify-between w-full">
                     {coupon.couponType === "klein" && (
                       <div
-                        className="flex flex-col items-center "
+                        className="flex flex-col items-center animate-[pulse_0.7s_ease-in-out_infinite]"
                         style={{
-                          color: "#856404" /* Dark amber text */,
-                          backgroundColor:
-                            "#fff3cd" /* Light yellow background */,
-                          border: "1px solid #ffeeba" /* Soft yellow border */,
+                          color: "#842029" /* Dark amber text */,
+                          backgroundColor: "#f8d7da" /* Light red background */,
+                          border: "1px solid #f5c2c7" /* Soft red border */,
                           padding: "5px",
+                          alignContent: "center",
                           borderRadius: "5px",
                           display: "inline-block",
                           width: "100%",
                           textAlign: "center",
                         }}>
-                        <Label>
-                          Bitte nochmal überprüfen !! ALLES korrekt ?
-                        </Label>
+                        <Label>BITTE NOCHMAL SCHAUEN.. ALLES KORREKT ?</Label>
                       </div>
                     )}
                     <Button
@@ -470,18 +468,19 @@ export function RedeemForm({
         </form>
         {isConfirming && coupon.couponType === "value" && (
           <div
-            className="flex flex-col items-center mt-1"
+            className="flex flex-col items-center mt-1 animate-[pulse_0.7s_ease-in-out_infinite]"
             style={{
-              color: "#856404" /* Dark amber text */,
-              backgroundColor: "#fff3cd" /* Light yellow background */,
-              border: "1px solid #ffeeba" /* Soft yellow border */,
+              color: "#842029" /* Dark amber text */,
+              backgroundColor: "#f8d7da" /* Light red background */,
+              border: "1px solid #f5c2c7" /* Soft red border */,
               padding: "5px",
+              alignContent: "center",
               borderRadius: "5px",
               display: "inline-block",
               width: "100%",
               textAlign: "center",
             }}>
-            <Label>Bitte nochmal überprüfen !! ALLES korrekt ?</Label>
+            <Label>BITTE NOCHMAL SCHAUEN.. ALLES KORREKT ?</Label>
           </div>
         )}
       </Form>

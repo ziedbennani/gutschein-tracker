@@ -86,7 +86,7 @@ type RequestData = ValueCouponRequestData | KleinCouponRequestData;
 const newCoupon = z.object({
   id: z
     .string()
-    .min(2)
+    .min(1)
     .transform((val) => val.toUpperCase())
     .refine(
       async (id) => {
@@ -98,8 +98,8 @@ const newCoupon = z.object({
         message: "Nummer schon gegeben",
       }
     ),
-  firstValue: z.number().min(1).optional(),
-  location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges"]).optional(),
+  firstValue: z.number().min(1),
+  location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges", "Büro"]),
   employee: z.string().min(3),
   couponType: z.enum(["value", "klein"]),
 });
@@ -108,7 +108,7 @@ const newCoupon = z.object({
 const oldCoupon = z.object({
   id: z
     .string()
-    .min(2)
+    .min(1)
     .transform((val) => val.toUpperCase())
     .refine(
       async (id) => {
@@ -120,7 +120,7 @@ const oldCoupon = z.object({
         message: "Nummer schon gegeben",
       }
     ),
-  restValue: z.number().min(1).optional(),
+  restValue: z.number().optional(),
   couponType: z.enum(["value", "klein"]),
 });
 
@@ -128,7 +128,7 @@ const oldCoupon = z.object({
 const newSmallCoupon = z.object({
   id: z
     .string()
-    .min(2)
+    .min(1)
     .transform((val) => val.toUpperCase())
     .refine(
       async (id) => {
@@ -140,7 +140,7 @@ const newSmallCoupon = z.object({
         message: "Nummer schon gegeben",
       }
     ),
-  location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges"]).optional(),
+  location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges", "Büro"]),
   employee: z.string().min(3),
   couponType: z.enum(["value", "klein"]),
 });
@@ -149,7 +149,7 @@ const newSmallCoupon = z.object({
 const oldSmallCoupon = z.object({
   id: z
     .string()
-    .min(2)
+    .min(1)
     .transform((val) => val.toUpperCase())
     .refine(
       async (id) => {
@@ -161,7 +161,10 @@ const oldSmallCoupon = z.object({
         message: "Nummer schon gegeben",
       }
     ),
-  createdAt: z.date(),
+  createdAt: z.date({
+    required_error: "Bitte wähle ein Jahr aus",
+    invalid_type_error: "Bitte wähle ein Jahr aus",
+  }),
   couponType: z.enum(["value", "klein"]),
 });
 
@@ -213,7 +216,7 @@ export function ProfileForm({
     } else if (useSimpleSchema && couponType === "klein") {
       return {
         id: "",
-        createdAt: new Date(),
+        createdAt: undefined as any, // Set undefined to show placeholder
         couponType: "klein" as const,
       };
     } else if (!useSimpleSchema && couponType === "klein") {
@@ -224,13 +227,15 @@ export function ProfileForm({
         couponType: "klein" as const,
       };
     } else {
-      return {
+      // Default values for normal value coupon (new)
+      const defaults = {
         id: "",
-        firstValue: undefined,
         employee: "",
         location: undefined,
         couponType: "value" as const,
       };
+      // This cast is necessary to handle the optional/required field discrepancies
+      return defaults as any as FormValues;
     }
   };
 
@@ -238,6 +243,7 @@ export function ProfileForm({
     resolver: zodResolver(formSchema),
     defaultValues: getDefaultValues(),
     mode: "onSubmit",
+    reValidateMode: "onBlur",
   });
 
   async function handleSubmit(formValues: z.infer<typeof formSchema>) {
@@ -268,9 +274,9 @@ export function ProfileForm({
           restValue: 0,
         };
 
-        requestData.description = useSimpleSchema
-          ? `ALT! ${formValues.id} (Kl. Becher) gespeichert`
-          : `NEU! ${formValues.id} (Kl. Becher) gespeichert`;
+        // requestData.description = useSimpleSchema
+        //   ? `ALT!  kl.Becher vom `${formValues.}` gespeichert`
+        //   : `NEU! kl.Becher gespeichert`;
 
         // For simple schema with klein coupon, include createdAt
         if (useSimpleSchema) {
@@ -294,7 +300,7 @@ export function ProfileForm({
 
         requestData.description = useSimpleSchema
           ? `ALT! ${formValues.id} mit ${Number(valueToShow).toFixed(2)}€`
-          : `NEU! ${formValues.id} mit ${Number(valueToShow).toFixed(2)} €`;
+          : `NEU!`;
       }
 
       // Add employee and location for non-simple schema
@@ -323,12 +329,10 @@ export function ProfileForm({
       // 3. Update local state first (synchronous operations)
       if (useSimpleSchema) {
         setCreatedCoupon?.(data.data.coupon);
-      } else {
-        setIsRedeemReady?.(false);
       }
-
-      // 4. Close the dialog (UI update)
-      setDialogOpen(false);
+      // else {
+      //   setIsRedeemReady?.(false);
+      // }
 
       // 5. Show success toast
       if (!useSimpleSchema) {
@@ -355,6 +359,7 @@ export function ProfileForm({
         description: "Der Gutschein konnte nicht erstellt werden.",
       });
     } finally {
+      setDialogOpen(false);
       setIsLoading(false);
     }
   }
@@ -382,7 +387,16 @@ export function ProfileForm({
                     Nummer
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Nummer" {...field} />
+                    <Input
+                      placeholder="Nummer"
+                      {...field}
+                      onBlur={(e) => {
+                        field.onBlur();
+                        if (field.value) {
+                          form.trigger("id");
+                        }
+                      }}
+                    />
                   </FormControl>
                   <FormMessage className="text-sm w-max" />
                 </FormItem>
@@ -480,7 +494,7 @@ export function ProfileForm({
                       defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Wo bist du baby ?" />
+                          <SelectValue placeholder="Laden auswählen" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -488,6 +502,7 @@ export function ProfileForm({
                         <SelectItem value="Transit">Transit</SelectItem>
                         <SelectItem value="Pit Stop">Pit Stop</SelectItem>
                         <SelectItem value="Wirges">Wirges</SelectItem>
+                        <SelectItem value="Büro">Büro</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormItem>
@@ -519,12 +534,13 @@ export function ProfileForm({
               <FormField
                 control={form.control}
                 name="createdAt"
-                render={({ field }) => {
+                render={({ field, fieldState }) => {
                   const currentYear = new Date().getFullYear();
+                  // Don't provide a default value to show placeholder
                   const yearValue =
                     field.value instanceof Date
                       ? field.value.getFullYear().toString()
-                      : currentYear.toString();
+                      : "";
 
                   // Generate array of years from 2000 to current year
                   const years = Array.from(
@@ -534,7 +550,10 @@ export function ProfileForm({
 
                   return (
                     <FormItem>
-                      <FormLabel>Gutschein von der Saison</FormLabel>
+                      <FormLabel
+                        className={cn(fieldState.invalid && "text-red-500")}>
+                        Datum auf dem Gutschein
+                      </FormLabel>
                       <Select
                         onValueChange={(value) => {
                           field.onChange(new Date(parseInt(value), 4, 15));
@@ -542,7 +561,7 @@ export function ProfileForm({
                         value={yearValue}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Wähle ein Jahr" />
+                            <SelectValue placeholder="Jahr auswählen" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -569,28 +588,29 @@ export function ProfileForm({
                 onClick={async (e) => {
                   e.preventDefault();
                   // Trigger validation on all fields
-                  const isValid = await form.trigger();
-                  if (isValid) {
-                    setIsConfirming(true);
-                  }
+                  // const isValid = await form.trigger();
+                  // if (isValid) {
+                  setIsConfirming(true);
+                  // }
                 }}>
                 Erstellen
               </Button>
             ) : (
               <div className="flex gap-2 justify-between w-full">
                 <div
-                  className="items-center"
+                  className="items-center animate-[pulse_0.7s_ease-in-out_infinite]"
                   style={{
-                    color: "#856404",
-                    backgroundColor: "#fff3cd",
-                    border: "1px solid #ffeeba",
-                    padding: "5px",
+                    color: "#842029" /* Dark amber text */,
+                    backgroundColor: "#f8d7da" /* Light red background */,
+                    border: "1px solid #f5c2c7" /* Soft red border */,
+                    padding: useSimpleSchema ? "5px" : "0 10px",
+                    alignContent: "center",
                     borderRadius: "5px",
                     display: "inline-block",
                     width: "100%",
                     textAlign: "center",
                   }}>
-                  <Label>Bitte nochmal überprüfen !! ALLES korrekt ?</Label>
+                  <Label>BITTE NOCHMAL SCHAUEN.. ALLES KORREKT ?</Label>
                 </div>
                 <Button
                   // style={{ width: "139.25px" }}
@@ -637,7 +657,7 @@ const AddCoupon = () => {
     <>
       <Dialog open={typeDialogOpen} onOpenChange={setTypeDialogOpen}>
         <DialogTrigger asChild>
-          <Button>Neuer Gutschein</Button>
+          <Button>Gutschein Verkaufen</Button>
         </DialogTrigger>
         <DialogContent className="p-5 gap-5 max-w-[95vw] w-[496px] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit">
           <DialogHeader>
@@ -647,12 +667,12 @@ const AddCoupon = () => {
           <div className="grid grid-cols-2 gap-4">
             <Button
               onClick={handleValueCouponSelect}
-              className="h-12 w-full flex flex-col bg-gradient-to-r from-[#FDC30A] to-[#FFD700] text-[#333333] font-semibold border-[#E0B000] border">
+              className="h-12 w-full flex flex-col bg-gradient-to-r from-[#FDC30A] to-[#FFD700] text-[#333333] font-semibold">
               Normal
             </Button>
             <Button
               onClick={handleKleinBecherSelect}
-              className="h-12 w-full flex flex-col bg-gradient-to-r from-[#FFD700] to-[#FDC30A] text-[#333333] font-semibold border-[#E0B000] border">
+              className="h-12 w-full flex flex-col bg-gradient-to-r from-[#FFD700] to-[#FDC30A] text-[#333333] font-semibold ">
               Klein Becher
             </Button>
           </div>
@@ -662,7 +682,13 @@ const AddCoupon = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent
           onPointerDownOutside={(e) => e.preventDefault()}
-          className="p-4 gap-4 max-w-[95vw] w-[500px] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit"
+          className="p-4 gap-4 max-w-[95vw] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw]"
+          style={{
+            width: "fit-content",
+            minWidth: "460px",
+            maxWidth: "550px",
+            transition: "width 0.3s ease",
+          }}
           aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>

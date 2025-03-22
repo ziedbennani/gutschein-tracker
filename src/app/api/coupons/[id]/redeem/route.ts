@@ -52,7 +52,7 @@ export async function PUT(
           data: {
             couponId: id,
             employee: employee,
-            description: `kl.Becher G. ${id} eingelöst`,
+            description: `kl.Becher eingelöst`,
             oldSystem: currentCoupon.oldSystem,
             oldId: newId ? id : null,
             firstValue: 0,
@@ -68,7 +68,7 @@ export async function PUT(
         const updatedCoupon = await tx.coupon.update({
           where: { id },
           data: {
-            description: `kl.Becher G. ${id} eingelöst`,
+            description: `kl.Becher eingelöst`,
             employee: employee,
             location: location,
             used: true,
@@ -104,7 +104,7 @@ export async function PUT(
       (currentCoupon.usedValue ? Number(currentCoupon.usedValue) : 0) +
       usedValue;
     console.log("newUsedValue : ", newUsedValue);
-    const isNowUsed = Math.abs(newRestValue) < 0.01; // Consider values less than 0.01 as effectively zero
+    const isNowUsed = newRestValue < 0.01; // Consider values less than 0.01 as effectively zero
     console.log("isNowUsed : ", isNowUsed);
 
     // Begin a transaction to ensure data consistency
@@ -116,10 +116,10 @@ export async function PUT(
           couponId: id,
           employee: employee,
           description: newId
-            ? `VOLL! ${id} -> ${newId} mit ${Number(usedValue).toFixed(
+            ? `WECHSEL! ${id} -> ${newId} und ${Number(usedValue).toFixed(
                 2
               )} € eingelöst`
-            : `${id} mit ${Number(usedValue).toFixed(2)} € eingelöst`,
+            : `${Number(usedValue).toFixed(2)} € eingelöst`,
           oldSystem: currentCoupon.oldSystem,
           oldId: newId ? id : null,
           firstValue: currentCoupon.restValue,
@@ -153,7 +153,7 @@ export async function PUT(
             restValue: newRestValue > 0 ? newRestValue : 0,
             usedValue: newUsedValue,
             employee: employee,
-            description: `VOLL! ${id} -> ${newId} mit ${Number(
+            description: `WECHSEL! ${id} -> ${newId} und ${Number(
               usedValue
             ).toFixed(2)} € eingelöst`,
             location: location,
@@ -178,9 +178,7 @@ export async function PUT(
           data: {
             restValue: newRestValue > 0 ? newRestValue : 0,
             usedValue: newUsedValue,
-            description: `${id} mit ${Number(usedValue).toFixed(
-              2
-            )} € eingelöst`,
+            description: `${Number(usedValue).toFixed(2)} € eingelöst`,
             employee: employee,
             location: location,
             used: isNowUsed,
