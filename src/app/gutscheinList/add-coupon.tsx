@@ -216,7 +216,7 @@ export function ProfileForm({
     } else if (useSimpleSchema && couponType === "klein") {
       return {
         id: "",
-        createdAt: undefined as any, // Set undefined to show placeholder
+        createdAt: undefined as unknown as Date,
         couponType: "klein" as const,
       };
     } else if (!useSimpleSchema && couponType === "klein") {
@@ -235,7 +235,7 @@ export function ProfileForm({
         couponType: "value" as const,
       };
       // This cast is necessary to handle the optional/required field discrepancies
-      return defaults as any as FormValues;
+      return defaults as unknown as FormValues;
     }
   };
 
@@ -394,6 +394,7 @@ export function ProfileForm({
                         field.onBlur();
                         if (field.value) {
                           form.trigger("id");
+                          console.log(e);
                         }
                       }}
                     />
