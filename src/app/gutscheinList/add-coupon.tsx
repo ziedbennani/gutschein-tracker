@@ -415,7 +415,7 @@ export function ProfileForm({
                       <FormItem>
                         <FormLabel
                           className={cn(fieldState.invalid && "text-red-500")}>
-                          Aktueller Betrag
+                          Betrag auf dem Gutschein
                         </FormLabel>
                         <FormControl>
                           <div className="relative">
