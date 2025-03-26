@@ -15,23 +15,6 @@ import { useEffect, useState } from "react";
 import { RedeemForm } from "./redeem-coupon-form";
 import { formatCurrency } from "./utils";
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-// export type Coupon = {
-//   id: string;
-//   firstValue: number | null;
-//   usedValue: number | null;
-//   restValue: number;
-//   employee: string;
-//   updatedAt: Date;
-//   createdAt: Date;
-//   description: string;
-//   oldSystem: boolean;
-//   used: boolean;
-//   location?: "Braugasse" | "Transit" | "Pit Stop" | "Wirges";
-//   couponType: "value" | "klein";
-// };
-
 export interface Coupon {
   id: string;
   createdAt: Date;

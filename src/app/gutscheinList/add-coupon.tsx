@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { EMPLOYEE_NAMES } from "@/lib/utils";
 import {
   Form,
   FormControl,
@@ -193,6 +194,8 @@ export function ProfileForm({
 }: ProfileFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [employeeSuggestions, setEmployeeSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Select the appropriate schema based on useSimpleSchema and couponType
   const formSchema = useSimpleSchema
@@ -245,6 +248,14 @@ export function ProfileForm({
     mode: "onSubmit",
     reValidateMode: "onBlur",
   });
+
+  // Add this function to filter suggestions
+  const filterSuggestions = (input: string) => {
+    if (!input) return [];
+    return EMPLOYEE_NAMES.filter((name) =>
+      name.toLowerCase().includes(input.toLowerCase())
+    );
+  };
 
   async function handleSubmit(formValues: z.infer<typeof formSchema>) {
     setIsLoading(true);
@@ -517,13 +528,47 @@ export function ProfileForm({
                 control={form.control}
                 name="employee"
                 render={({ field, fieldState }) => (
-                  <FormItem>
+                  <FormItem className="relative">
                     <FormLabel
                       className={cn(fieldState.invalid && "text-red-500")}>
                       Mitarbeiter
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Name" {...field} />
+                      <div className="relative">
+                        <Input
+                          placeholder="Name"
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            const suggestions = filterSuggestions(
+                              e.target.value
+                            );
+                            setEmployeeSuggestions(suggestions);
+                            setShowSuggestions(true);
+                          }}
+                          onFocus={() => setShowSuggestions(true)}
+                          onBlur={() => {
+                            // Delay hiding suggestions to allow clicking on them
+                            setTimeout(() => setShowSuggestions(false), 200);
+                          }}
+                        />
+                        {showSuggestions && employeeSuggestions.length > 0 && (
+                          <div className="relative z-100 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                            {employeeSuggestions.map((name, index) => (
+                              <div
+                                key={index}
+                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                onClick={() => {
+                                  field.onChange(name);
+                                  setEmployeeSuggestions([]);
+                                  setShowSuggestions(false);
+                                }}>
+                                {name}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
                   </FormItem>
                 )}

@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
+import { EMPLOYEE_NAMES } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { Coupon } from "./columns";
@@ -73,6 +73,8 @@ export function RedeemForm({
   const [isFormSubmitted, setFormSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [employeeSuggestions, setEmployeeSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -93,6 +95,13 @@ export function RedeemForm({
           },
     mode: "onSubmit",
   });
+
+  const filterSuggestions = (input: string) => {
+    if (!input) return [];
+    return EMPLOYEE_NAMES.filter((name) =>
+      name.toLowerCase().includes(input.toLowerCase())
+    );
+  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
@@ -305,13 +314,48 @@ export function RedeemForm({
                   control={form.control}
                   name="employee"
                   render={({ field, fieldState }) => (
-                    <FormItem className="flex-1">
+                    <FormItem className="relative flex-1">
                       <FormLabel
                         className={cn(fieldState.invalid && "text-red-500 ")}>
                         Mitarbeiter
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="Name" {...field} />
+                        <div className="relative">
+                          <Input
+                            placeholder="Name"
+                            {...field}
+                            onChange={(e) => {
+                              field.onChange(e);
+                              const suggestions = filterSuggestions(
+                                e.target.value
+                              );
+                              setEmployeeSuggestions(suggestions);
+                              setShowSuggestions(true);
+                            }}
+                            onFocus={() => setShowSuggestions(true)}
+                            onBlur={() => {
+                              // Delay hiding suggestions to allow clicking on them
+                              setTimeout(() => setShowSuggestions(false), 200);
+                            }}
+                          />
+                          {showSuggestions &&
+                            employeeSuggestions.length > 0 && (
+                              <div className="relative z-100 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                                {employeeSuggestions.map((name, index) => (
+                                  <div
+                                    key={index}
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    onClick={() => {
+                                      field.onChange(name);
+                                      setEmployeeSuggestions([]);
+                                      setShowSuggestions(false);
+                                    }}>
+                                    {name}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                        </div>
                       </FormControl>
                     </FormItem>
                   )}

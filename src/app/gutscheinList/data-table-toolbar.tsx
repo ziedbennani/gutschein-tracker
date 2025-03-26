@@ -42,17 +42,17 @@ export function DataTableToolbar<TData>({
 
     (function frame() {
       confetti({
-        particleCount: 10,
+        particleCount: 5,
         angle: 60,
-        spread: 100,
-        origin: { x: 0 },
+        spread: 110,
+        origin: { x: 0, y: 0.5 },
         colors: colors,
       });
       confetti({
-        particleCount: 10,
+        particleCount: 5,
         angle: 120,
-        spread: 100,
-        origin: { x: 1 },
+        spread: 110,
+        origin: { x: 1, y: 0.5 },
         colors: colors,
       });
 
