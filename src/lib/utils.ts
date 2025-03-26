@@ -9,6 +9,7 @@ export const EMPLOYEE_NAMES = [
   "Claudio",
   "Sabine",
   "Anja",
+  "Nga",
   "Zied",
   "Nassime",
   "Maher",
