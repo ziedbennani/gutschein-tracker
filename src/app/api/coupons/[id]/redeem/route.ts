@@ -52,12 +52,14 @@ export async function PUT(
           data: {
             couponId: id,
             employee: employee,
-            description: `kl.Becher eingelöst`,
+            description: `kl.Becher(${new Date(
+              currentCoupon.createdAt
+            ).getFullYear()}) eingelöst`,
             oldSystem: currentCoupon.oldSystem,
-            oldId: newId ? id : null,
-            firstValue: 0,
-            usedValue: 0,
-            restValue: 0,
+            oldId: null,
+            firstValue: null,
+            usedValue: null,
+            restValue: null,
             used: true,
             location: location,
             couponType: currentCoupon.couponType,
@@ -68,7 +70,12 @@ export async function PUT(
         const updatedCoupon = await tx.coupon.update({
           where: { id },
           data: {
-            description: `kl.Becher eingelöst`,
+            description: `kl.Becher(${new Date(
+              currentCoupon.createdAt
+            ).getFullYear()}) eingelöst`,
+            firstValue: null,
+            usedValue: null,
+            restValue: null,
             employee: employee,
             location: location,
             used: true,
