@@ -22,24 +22,24 @@ export async function POST(request: Request) {
       used: data.used !== undefined ? data.used : false,
       couponType: data.couponType,
       // For klein coupons, ensure numeric fields are set properly
-      firstValue:
-        data.firstValue !== undefined
-          ? data.firstValue
-          : data.couponType === "klein"
-          ? 0
-          : null,
-      usedValue:
-        data.usedValue !== undefined
-          ? data.usedValue
-          : data.couponType === "klein"
-          ? 0
-          : null,
-      restValue:
-        data.restValue !== undefined
-          ? data.restValue
-          : data.couponType === "klein"
-          ? 0
-          : null,
+      firstValue: data.couponType === "klein" ? null : data.firstValue,
+      // data.firstValue !== undefined
+      //   ? data.firstValue
+      //   : data.couponType === "klein"
+      //   ? null
+      //   : null,
+      usedValue: data.couponType === "klein" ? null : data.usedValue,
+      // data.usedValue !== undefined
+      //   ? data.usedValue
+      //   : data.couponType === "klein"
+      //   ? null
+      //   : null,
+      restValue: data.couponType === "klein" ? null : data.restValue,
+      // data.restValue !== undefined
+      //   ? data.restValue
+      //   : data.couponType === "klein"
+      //   ? null
+      //   : null,
     };
 
     // Use a transaction to create both the coupon and its history entry

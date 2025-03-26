@@ -22,10 +22,10 @@ export async function POST(request: Request) {
     const coupon = await prisma.coupon.create({
       data: {
         ...data,
-        usedValue: 0,
+        usedValue: isKleinBecher ? null : 0,
         // For Klein Becher coupons, set firstValue to 0 or null
-        firstValue: isKleinBecher ? 0 : data.firstValue,
-        restValue: isKleinBecher ? 0 : data.firstValue,
+        firstValue: isKleinBecher ? null : data.firstValue,
+        restValue: isKleinBecher ? null : data.firstValue,
         description: description,
         couponType: data.couponType, // Ensure couponType is explicitly set
       },
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
         description: description,
         oldSystem: false,
         firstValue: coupon.firstValue,
-        usedValue: 0,
+        usedValue: isKleinBecher ? null : 0,
         restValue: coupon.firstValue,
         used: false,
         location: data.location,
