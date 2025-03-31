@@ -171,35 +171,6 @@ const oldSmallCoupon = z.object({
   couponType: z.enum(["value", "klein"]),
 });
 
-// Add this after the other schema definitions
-const subsequentCoupon = z
-  .object({
-    id: z
-      .string()
-      .min(1)
-      .transform((val) => val.toUpperCase())
-      .refine(
-        async (id) => {
-          const response = await fetch(`/api/coupons/check-id?id=${id}`);
-          const { exists } = await response.json();
-          return !exists;
-        },
-        {
-          message: "Nummer schon gegeben",
-        }
-      ),
-    couponType: z.enum(["value", "klein"]),
-  })
-  .and(
-    z.discriminatedUnion("couponType", [
-      z.object({
-        couponType: z.literal("value"),
-        firstValue: z.number().min(1),
-      }),
-      z.object({ couponType: z.literal("klein") }),
-    ])
-  );
-
 // Define FormValues type based on all possible form schemas
 type FormValues =
   | z.infer<typeof oldCoupon>
