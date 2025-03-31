@@ -353,11 +353,11 @@ export function DataTable<TData, TValue>({
                         onOpenChange={setIsOldCouponDialogOpen}>
                         <DialogContent
                           onPointerDownOutside={(e) => e.preventDefault()}
-                          className="p-4 gap-4 max-w-[95vw] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw]"
+                          className="p-4 gap-2 mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh]"
                           style={{
                             width: "fit-content",
-                            minWidth: "425px",
-                            maxWidth: "550px",
+                            // minWidth: "425px",
+                            // maxWidth: "550px",
                             transition: "width 0.3s ease",
                           }}
                           aria-describedby={undefined}>

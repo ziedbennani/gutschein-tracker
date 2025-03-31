@@ -475,9 +475,9 @@ export function RedeemForm({
                       <div
                         className="flex flex-col items-center animate-[pulse_0.7s_ease-in-out_infinite]"
                         style={{
-                          color: "#842029" /* Dark amber text */,
-                          backgroundColor: "#f8d7da" /* Light red background */,
-                          border: "1px solid #f5c2c7" /* Soft red border */,
+                          color: "#854d0e",
+                          backgroundColor: "#fef9c3",
+                          border: "1px solid #fde047",
                           padding: "5px",
                           alignContent: "center",
                           borderRadius: "5px",
@@ -485,7 +485,7 @@ export function RedeemForm({
                           width: "100%",
                           textAlign: "center",
                         }}>
-                        <Label>BITTE NOCHMAL SCHAUEN.. ALLES KORREKT ?</Label>
+                        <Label>BITTE NOCHMAL PRÜFEN</Label>
                       </div>
                     )}
                     <Button
@@ -514,9 +514,9 @@ export function RedeemForm({
           <div
             className="flex flex-col items-center mt-1 animate-[pulse_0.7s_ease-in-out_infinite]"
             style={{
-              color: "#842029" /* Dark amber text */,
-              backgroundColor: "#f8d7da" /* Light red background */,
-              border: "1px solid #f5c2c7" /* Soft red border */,
+              color: "#854d0e",
+              backgroundColor: "#fef9c3",
+              border: "1px solid #fde047",
               padding: "5px",
               alignContent: "center",
               borderRadius: "5px",
@@ -524,7 +524,7 @@ export function RedeemForm({
               width: "100%",
               textAlign: "center",
             }}>
-            <Label>BITTE NOCHMAL SCHAUEN.. ALLES KORREKT ?</Label>
+            <Label>BITTE NOCHMAL PRÜFEN</Label>
           </div>
         )}
       </Form>
