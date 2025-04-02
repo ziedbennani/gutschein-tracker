@@ -80,7 +80,8 @@ export function DataTableToolbar<TData>({
             placeholder="Gutschein Nummer"
             value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
             onChange={(event) => {
-              table.getColumn("id")?.setFilterValue(event.target.value);
+              const searchValue = event.target.value;
+              table.getColumn("id")?.setFilterValue(searchValue);
             }}
           />
           <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />

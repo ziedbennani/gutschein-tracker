@@ -172,6 +172,12 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
+    filterFns: {
+      exact: (row, columnId, filterValue) => {
+        const rowValue = String(row.getValue(columnId)).toLowerCase();
+        return rowValue === String(filterValue.value).toLowerCase();
+      },
+    },
     state: {
       sorting,
       columnFilters,

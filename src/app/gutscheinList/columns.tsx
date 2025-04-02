@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, FilterFn } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -91,6 +91,11 @@ export const columns: ColumnDef<Coupon>[] = [
   {
     accessorKey: "id",
     header: "Nummer",
+    filterFn: (row, columnId, filterValue) => {
+      const rowValue = String(row.getValue(columnId)).toLowerCase();
+      const searchValue = String(filterValue).toLowerCase();
+      return rowValue.startsWith(searchValue);
+    },
   },
   {
     accessorKey: "firstValue",
