@@ -9,6 +9,7 @@ export const EMPLOYEE_NAMES = [
   "Claudio",
   "Sabine",
   "Anja",
+  "Anja H",
   "Nga",
   "Zied",
   "Nassime",
@@ -24,7 +25,8 @@ export const EMPLOYEE_NAMES = [
   "Joseph",
   "Jiejie",
   "Maja",
-  "Paula",
+  "Paula T",
+  "Paula A",
   "Lilly",
   "Marissa",
   "Steffi",
@@ -34,7 +36,8 @@ export const EMPLOYEE_NAMES = [
   "Emily",
   "Hanna",
   "Anna",
-  "Sophia",
+  "Sophia N",
+  "Sophia S",
   "Lucy",
   "Hannah",
   "Mai Kim",
@@ -58,6 +61,8 @@ export const EMPLOYEE_NAMES = [
   "Irina",
   "Marie",
   "Emilia",
+  "Tobi",
+  "Esther",
 
   // Add more names as needed
 ];
