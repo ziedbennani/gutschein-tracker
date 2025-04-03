@@ -378,7 +378,7 @@ export function RedeemForm({
                         defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Laden auswählen" />
+                            <SelectValue placeholder="Wo bist du Babe" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
