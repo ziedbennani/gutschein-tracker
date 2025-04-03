@@ -618,7 +618,7 @@ export function ProfileForm({
                               defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Laden auswählen" />
+                                  <SelectValue placeholder="Wo bist du Baby" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
