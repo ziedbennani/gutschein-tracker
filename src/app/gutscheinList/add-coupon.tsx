@@ -964,6 +964,7 @@ const AddCoupon = () => {
     setCouponType("value");
     setTypeDialogOpen(false);
     setDialogOpen(true);
+    console.log(createdCoupon);
   };
 
   const handleKleinBecherSelect = () => {
