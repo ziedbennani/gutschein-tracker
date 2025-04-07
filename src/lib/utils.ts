@@ -25,6 +25,7 @@ export const EMPLOYEE_NAMES = [
   "Joseph",
   "Jiejie",
   "Maja",
+  "Mara",
   "Paula T",
   "Paula A",
   "Lilly",

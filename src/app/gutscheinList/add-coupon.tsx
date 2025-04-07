@@ -688,8 +688,22 @@ export function ProfileForm({
                                 {showSuggestions &&
                                   employeeSuggestions.length > 0 && (
                                     <div
-                                      className="absolute z-[1000] w-full mt-1 bg-white border rounded-md shadow-lg overflow-y-auto"
-                                      style={{ maxHeight: "160px" }}>
+                                      className={cn(
+                                        "absolute z-[99999] bg-white border rounded-md shadow-lg overflow-y-auto",
+                                        couponType === "klein"
+                                          ? "w-[133px]"
+                                          : "w-[210px]"
+                                      )}
+                                      style={{
+                                        maxHeight: "160px",
+                                        ...(couponType === "klein"
+                                          ? { top: "100%", marginTop: "4px" }
+                                          : {
+                                              bottom: "100%",
+                                              marginBottom: "4px",
+                                            }),
+                                        left: 0,
+                                      }}>
                                       {employeeSuggestions.map(
                                         (name, index) => (
                                           <div
@@ -1002,12 +1016,13 @@ const AddCoupon = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent
           onPointerDownOutside={(e) => e.preventDefault()}
-          className="p-4 gap-2 mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh]"
+          className="p-4 gap-2 mx-auto mt-2 top-0 translate-y-0 max-h-[90vh]"
           style={{
             width: "fit-content",
             // minWidth: "460px",
             // maxWidth: "550px",
             transition: "width 0.3s ease",
+            overflow: "visible",
           }}
           aria-describedby={undefined}>
           <DialogHeader>
