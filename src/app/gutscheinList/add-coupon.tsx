@@ -272,7 +272,7 @@ export function ProfileForm({
   const filterSuggestions = (input: string) => {
     if (!input) return [];
     return EMPLOYEE_NAMES.filter((name) =>
-      name.toLowerCase().includes(input.toLowerCase())
+      name.toLowerCase().startsWith(input.toLowerCase())
     );
   };
 
@@ -474,7 +474,7 @@ export function ProfileForm({
 
             {useSimpleSchema && isMultiMode ? (
               <div className="flex items-center justify-center h-32 w-full bg-gray-50/50 rounded-lg text-lg font-medium text-gray-500">
-                Kommt bald babe, weg von hier
+                Coming soon, sorry not sorry...
               </div>
             ) : (
               <>
@@ -629,7 +629,7 @@ export function ProfileForm({
                               defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Laden auswählen" />
+                                  <SelectValue placeholder="Wo bist du Babe" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -687,7 +687,9 @@ export function ProfileForm({
                                 />
                                 {showSuggestions &&
                                   employeeSuggestions.length > 0 && (
-                                    <div className="relative z-100 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                                    <div
+                                      className="absolute z-[1000] w-full mt-1 bg-white border rounded-md shadow-lg overflow-y-auto"
+                                      style={{ maxHeight: "160px" }}>
                                       {employeeSuggestions.map(
                                         (name, index) => (
                                           <div
@@ -873,7 +875,7 @@ export function ProfileForm({
                   ) : (
                     <div className="flex gap-2 justify-between w-full">
                       <div
-                        className="items-center animate-[pulse_0.7s_ease-in-out_infinite]"
+                        className="items-center animate-[pulse_1s_ease-in-out_infinite]"
                         style={{
                           color: "#854d0e",
                           backgroundColor: "#fef9c3",

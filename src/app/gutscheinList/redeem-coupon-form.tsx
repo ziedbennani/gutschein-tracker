@@ -99,7 +99,7 @@ export function RedeemForm({
   const filterSuggestions = (input: string) => {
     if (!input) return [];
     return EMPLOYEE_NAMES.filter((name) =>
-      name.toLowerCase().includes(input.toLowerCase())
+      name.toLowerCase().startsWith(input.toLowerCase())
     );
   };
 
@@ -340,7 +340,9 @@ export function RedeemForm({
                           />
                           {showSuggestions &&
                             employeeSuggestions.length > 0 && (
-                              <div className="relative z-100 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                              <div
+                                className="absolute z-[1000] w-full mt-1 bg-white border rounded-md shadow-lg overflow-y-auto"
+                                style={{ maxHeight: "160px" }}>
                                 {employeeSuggestions.map((name, index) => (
                                   <div
                                     key={index}
@@ -378,7 +380,7 @@ export function RedeemForm({
                         defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Laden auswählen" />
+                            <SelectValue placeholder="Wo bist du Babe" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -473,7 +475,7 @@ export function RedeemForm({
                   <div className="flex gap-2 justify-between w-full">
                     {coupon.couponType === "klein" && (
                       <div
-                        className="flex flex-col items-center animate-[pulse_0.7s_ease-in-out_infinite]"
+                        className="flex flex-col items-center animate-[pulse_1s_ease-in-out_infinite]"
                         style={{
                           color: "#854d0e",
                           backgroundColor: "#fef9c3",
@@ -512,7 +514,7 @@ export function RedeemForm({
         </form>
         {isConfirming && coupon.couponType === "value" && (
           <div
-            className="flex flex-col items-center mt-1 animate-[pulse_0.7s_ease-in-out_infinite]"
+            className="flex flex-col items-center mt-1 animate-[pulse_1s_ease-in-out_infinite]"
             style={{
               color: "#854d0e",
               backgroundColor: "#fef9c3",

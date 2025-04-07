@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export const EMPLOYEE_NAMES = [
   "Claudio",
   "Sabine",
-  "Anja",
+  "Anja M",
   "Anja H",
   "Nga",
   "Zied",
@@ -63,6 +63,7 @@ export const EMPLOYEE_NAMES = [
   "Emilia",
   "Tobi",
   "Esther",
+  "Ingeborg",
 
   // Add more names as needed
 ];
