@@ -139,6 +139,7 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
+  const [searchValue, setSearchValue] = useState<string>("");
   const [isOldCouponDialogOpen, setIsOldCouponDialogOpen] = useState(false);
   const [couponType, setCouponType] = useState<string>("value");
   const [isRedeemReady, setIsRedeemReady] = useState(false);
@@ -274,6 +275,7 @@ export function DataTable<TData, TValue>({
               table={table}
               data={data}
               isRedeemReady={isRedeemReady}
+              onSearchChange={setSearchValue}
               onRefresh={() => {
                 setLastRefreshTime(new Date());
                 // Calculate and update the next refresh time (2 hours from now)
@@ -377,6 +379,7 @@ export function DataTable<TData, TValue>({
                             setCreatedCoupon={setCreatedCoupon}
                             useSimpleSchema={true}
                             couponType={couponType}
+                            defaultId={searchValue}
                           />
                         </DialogContent>
                       </Dialog>

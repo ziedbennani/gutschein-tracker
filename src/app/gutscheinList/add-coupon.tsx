@@ -179,12 +179,12 @@ type FormValues =
   | z.infer<typeof newCoupon>;
 
 interface ProfileFormProps {
-  setCreatedCoupon?: (coupon: Coupon | null) => void;
+  setCreatedCoupon: (coupon: Coupon | null) => void;
   setDialogOpen: (open: boolean) => void;
   useSimpleSchema?: boolean;
   setIsRedeemReady?: (ready: boolean) => void;
-  createdCoupon?: Coupon | null;
-  couponType?: string;
+  couponType: string;
+  defaultId?: string;
 }
 
 export function ProfileForm({
@@ -193,6 +193,7 @@ export function ProfileForm({
   useSimpleSchema = false,
   setIsRedeemReady,
   couponType,
+  defaultId,
 }: ProfileFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -251,10 +252,20 @@ export function ProfileForm({
   };
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: getDefaultValues(),
-    mode: "onSubmit",
-    reValidateMode: "onBlur",
+    resolver: zodResolver(
+      useSimpleSchema
+        ? couponType === "klein"
+          ? oldSmallCoupon
+          : oldCoupon
+        : couponType === "klein"
+        ? newSmallCoupon
+        : newCoupon
+    ),
+    defaultValues: {
+      id: defaultId || "",
+      createdAt: undefined as unknown as Date,
+      couponType: couponType as "value" | "klein",
+    },
   });
 
   // Add this function to filter suggestions
@@ -1008,7 +1019,6 @@ const AddCoupon = () => {
           <ProfileForm
             setDialogOpen={setDialogOpen}
             setCreatedCoupon={setCreatedCoupon}
-            createdCoupon={createdCoupon}
             couponType={couponType}
           />
         </DialogContent>

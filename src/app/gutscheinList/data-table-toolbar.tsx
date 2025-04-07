@@ -15,6 +15,7 @@ interface DataTableToolbarProps<TData> {
   data: TData[];
   isRedeemReady: boolean;
   onRefresh?: () => void;
+  onSearchChange?: (value: string) => void;
   // createdCoupon: Coupon | null;
 }
 
@@ -22,6 +23,7 @@ export function DataTableToolbar<TData>({
   table,
   isRedeemReady,
   onRefresh,
+  onSearchChange,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const router = useRouter();
@@ -82,6 +84,7 @@ export function DataTableToolbar<TData>({
             onChange={(event) => {
               const searchValue = event.target.value;
               table.getColumn("id")?.setFilterValue(searchValue);
+              onSearchChange?.(searchValue);
             }}
           />
           <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
