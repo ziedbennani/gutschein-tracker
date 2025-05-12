@@ -1081,7 +1081,10 @@ export function ProfileForm({
                                 }
 
                                 // Validate other required fields first
-                                let fieldsToValidate = ["location", "employee"];
+                                const fieldsToValidate = [
+                                  "location",
+                                  "employee",
+                                ];
                                 if (couponType === "value") {
                                   fieldsToValidate.push("firstValue");
                                 }
@@ -1097,7 +1100,7 @@ export function ProfileForm({
 
                                 // Add all generated coupons to pending
                                 for (const id of generatedIds) {
-                                  let couponValues: {
+                                  const couponValues: {
                                     id: string;
                                     location:
                                       | "Braugasse"
