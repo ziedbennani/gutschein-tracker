@@ -40,9 +40,10 @@ export const EMPLOYEE_NAMES = [
   "Sophia N",
   "Sophia S",
   "Lucy",
-  "Hannah",
+  "Hannah Lenaif",
+  "Hannah Link",
   "Mai Kim",
-  "Kim",
+  "Kim B",
   "Melina",
   "Annabelle",
   "Emma R",
@@ -60,14 +61,29 @@ export const EMPLOYEE_NAMES = [
   "Liv",
   "Frida",
   "Selma",
-  "Leni",
+  "Leni E",
+  "Leni W",
   "Irina",
   "Marie",
   "Emilia",
   "Tobi",
   "Esther",
-  "Ingeborg",
+  "Seraphina",
   "Alessia",
+  "Helena",
+  "Vanessa",
+  "Eda",
 
   // Add more names as needed
 ];
+
+export const LOCATION_NAMES = [
+  "Braugasse",
+  "Transit",
+  "Pit Stop",
+  "Wirges",
+  "Büro",
+  "Eiswagen",
+];
+
+export const PREIS_KLEIN = 2.4;

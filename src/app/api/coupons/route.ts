@@ -22,12 +22,11 @@ export async function POST(request: Request) {
     const coupon = await prisma.coupon.create({
       data: {
         ...data,
-        usedValue: isKleinBecher ? null : 0,
-        // For Klein Becher coupons, set firstValue to 0 or null
-        firstValue: isKleinBecher ? null : data.firstValue,
+        usedValue: 0,
+        firstValue: data.firstValue,
         restValue: isKleinBecher ? null : data.firstValue,
         description: description,
-        couponType: data.couponType, // Ensure couponType is explicitly set
+        couponType: data.couponType,
       },
     });
 
@@ -39,15 +38,16 @@ export async function POST(request: Request) {
         description: description,
         oldSystem: false,
         firstValue: coupon.firstValue,
-        usedValue: isKleinBecher ? null : 0,
+        usedValue: 0,
         restValue: coupon.firstValue,
         used: false,
         location: data.location,
-        couponType: data.couponType, // Ensure couponType is explicitly set
+        couponType: data.couponType,
       },
     });
 
-    console.log("coupon created :", coupon);
+    console.log("coupon :", coupon);
+    console.log("data :", data);
 
     // Revalidate the coupons list page after creating a new coupon
     revalidatePath("/gutscheinList");

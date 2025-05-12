@@ -29,6 +29,7 @@ export function DataTableToolbar<TData>({
   const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
+  const [searchActive, setSearchActive] = useState(false);
 
   useEffect(() => {
     if (!isRedeemReady) {
@@ -36,6 +37,12 @@ export function DataTableToolbar<TData>({
       console.log("isRedeemReady", isRedeemReady);
     }
   }, [isRedeemReady]);
+
+  // Add useEffect to check if ID column has a filter value
+  useEffect(() => {
+    const idFilterValue = table.getColumn("id")?.getFilterValue() as string;
+    setSearchActive(Boolean(idFilterValue && idFilterValue.length > 0));
+  }, [table.getState().columnFilters]);
 
   const schoolPride = () => {
     const end = Date.now() + 1 * 1000; // run for 1 second
@@ -84,6 +91,7 @@ export function DataTableToolbar<TData>({
             onChange={(event) => {
               const searchValue = event.target.value;
               table.getColumn("id")?.setFilterValue(searchValue);
+              setSearchActive(searchValue.length > 0);
               onSearchChange?.(searchValue);
             }}
           />
@@ -100,7 +108,7 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
 
-        <AddCoupon />
+        {!searchActive && <AddCoupon />}
         <div className="flex flex-col items-end">
           <Button
             variant="outline"

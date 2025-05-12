@@ -36,7 +36,13 @@ const formSchema = z
   .object({
     usedValue: z.number(),
     employee: z.string().min(3),
-    location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges"]),
+    location: z.enum([
+      "Braugasse",
+      "Transit",
+      "Pit Stop",
+      "Wirges",
+      "Eiswagen",
+    ]),
     tip: z.number().nullable().optional(),
     newId: z
       .string()
@@ -89,7 +95,7 @@ export function RedeemForm({
           }
         : {
             // For klein coupons
-            usedValue: 0, // Set default usedValue to 0 for klein coupons
+            usedValue: 2.4,
             employee: "",
             location: undefined,
           },
@@ -125,8 +131,8 @@ export function RedeemForm({
       const requestData = {
         ...values,
         // For klein coupons, ensure numeric values are set
-        usedValue: coupon.couponType === "klein" ? 0 : values.usedValue,
-        restValue: coupon.couponType === "klein" ? 0 : undefined,
+        // usedValue: coupon.couponType === "klein" ? 0 : values.usedValue,
+        // restValue: coupon.couponType === "klein" ? 0 : undefined,
       };
 
       // 1. First, make the API call
@@ -135,7 +141,7 @@ export function RedeemForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
       });
-
+      console.log("req", requestData);
       const responseData = await response.json();
       if (!response.ok) {
         throw new Error(responseData.error || "Failed to redeem coupon");
@@ -341,8 +347,15 @@ export function RedeemForm({
                           {showSuggestions &&
                             employeeSuggestions.length > 0 && (
                               <div
-                                className="absolute z-[1000] w-full mt-1 bg-white border rounded-md shadow-lg overflow-y-auto"
-                                style={{ maxHeight: "160px" }}>
+                                className={cn(
+                                  "absolute z-[99999] bg-white border rounded-md shadow-lg overflow-y-auto mt-1",
+                                  coupon.couponType === "klein"
+                                    ? "w-[210px]"
+                                    : "w-[235px]"
+                                )}
+                                style={{
+                                  maxHeight: "160px",
+                                }}>
                                 {employeeSuggestions.map((name, index) => (
                                   <div
                                     key={index}
@@ -388,6 +401,7 @@ export function RedeemForm({
                           <SelectItem value="Transit">Transit</SelectItem>
                           <SelectItem value="Pit Stop">Pit Stop</SelectItem>
                           <SelectItem value="Wirges">Wirges</SelectItem>
+                          <SelectItem value="Eiswagen">Eiswagen</SelectItem>
                         </SelectContent>
                       </Select>
                     </FormItem>
@@ -439,7 +453,7 @@ export function RedeemForm({
                   <Button
                     type="button"
                     className={cn(
-                      " bg-[#FDC30A] hover:bg-[#e3af09] text-black ",
+                      " bg-[#FDC30A] hover:bg-[#e3af09] text-black w-full",
                       coupon.couponType === "value" && "mt-[2.35rem]"
                     )}
                     onClick={async (e) => {
@@ -448,8 +462,7 @@ export function RedeemForm({
 
                       // For klein coupons, set usedValue to 0 if not provided
                       if (coupon.couponType === "klein") {
-                        form.setValue("usedValue", 0);
-                        console.log("Set usedValue to 0 for klein coupon");
+                        form.setValue("usedValue", 2.4);
                       }
 
                       // Trigger validation on all fields

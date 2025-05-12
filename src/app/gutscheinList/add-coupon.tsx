@@ -6,8 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { EMPLOYEE_NAMES } from "@/lib/utils";
+import { EMPLOYEE_NAMES, PREIS_KLEIN } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 
 import {
   Form,
@@ -38,6 +39,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { Icons } from "@/components/icons";
 import { Label } from "@/components/ui/label";
+import { formatCurrency } from "./utils";
 
 // Define the Coupon interface
 interface Coupon {
@@ -91,18 +93,20 @@ const newCoupon = z.object({
     .string()
     .min(1)
     .transform((val) => val.toUpperCase())
-    .refine(
-      async (id) => {
-        const response = await fetch(`/api/coupons/check-id?id=${id}`);
-        const { exists } = await response.json();
-        return !exists;
-      },
-      {
-        message: "Nummer schon gegeben",
-      }
-    ),
+    .transform(async (id: string) => {
+      const response = await fetch(`/api/coupons/check-id?id=${id}`);
+      const { exists } = await response.json();
+      return exists ? `${id}.` : id;
+    }),
   firstValue: z.number().min(1),
-  location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges", "Büro"]),
+  location: z.enum([
+    "Braugasse",
+    "Transit",
+    "Pit Stop",
+    "Wirges",
+    "Büro",
+    "Eiswagen",
+  ]),
   employee: z.string().min(3),
   couponType: z.enum(["value", "klein"]),
 });
@@ -113,16 +117,11 @@ const oldCoupon = z.object({
     .string()
     .min(1)
     .transform((val) => val.toUpperCase())
-    .refine(
-      async (id) => {
-        const response = await fetch(`/api/coupons/check-id?id=${id}`);
-        const { exists } = await response.json();
-        return !exists;
-      },
-      {
-        message: "Nummer schon gegeben",
-      }
-    ),
+    .transform(async (id: string) => {
+      const response = await fetch(`/api/coupons/check-id?id=${id}`);
+      const { exists } = await response.json();
+      return exists ? `${id}.` : id;
+    }),
   restValue: z.number().optional(),
   couponType: z.enum(["value", "klein"]),
 });
@@ -133,17 +132,19 @@ const newSmallCoupon = z.object({
     .string()
     .min(1)
     .transform((val) => val.toUpperCase())
-    .refine(
-      async (id) => {
-        const response = await fetch(`/api/coupons/check-id?id=${id}`);
-        const { exists } = await response.json();
-        return !exists;
-      },
-      {
-        message: "Nummer schon gegeben",
-      }
-    ),
-  location: z.enum(["Braugasse", "Transit", "Pit Stop", "Wirges", "Büro"]),
+    .transform(async (id: string) => {
+      const response = await fetch(`/api/coupons/check-id?id=${id}`);
+      const { exists } = await response.json();
+      return exists ? `${id}.` : id;
+    }),
+  location: z.enum([
+    "Braugasse",
+    "Transit",
+    "Pit Stop",
+    "Wirges",
+    "Büro",
+    "Eiswagen",
+  ]),
   employee: z.string().min(3),
   couponType: z.enum(["value", "klein"]),
 });
@@ -154,16 +155,11 @@ const oldSmallCoupon = z.object({
     .string()
     .min(1)
     .transform((val) => val.toUpperCase())
-    .refine(
-      async (id) => {
-        const response = await fetch(`/api/coupons/check-id?id=${id}`);
-        const { exists } = await response.json();
-        return !exists;
-      },
-      {
-        message: "Nummer schon gegeben",
-      }
-    ),
+    .transform(async (id: string) => {
+      const response = await fetch(`/api/coupons/check-id?id=${id}`);
+      const { exists } = await response.json();
+      return exists ? `${id}.` : id;
+    }),
   createdAt: z.date({
     required_error: "Bitte wähle ein Jahr aus",
     invalid_type_error: "Bitte wähle ein Jahr aus",
@@ -202,9 +198,12 @@ export function ProfileForm({
   const [pendingCoupons, setPendingCoupons] = useState<FormValues[]>([]);
   const [isMultiMode, setIsMultiMode] = useState(false);
   const [savedLocation, setSavedLocation] = useState<
-    "Braugasse" | "Transit" | "Pit Stop" | "Wirges" | "Büro"
+    "Braugasse" | "Transit" | "Pit Stop" | "Wirges" | "Büro" | "Eiswagen"
   >();
   const [savedEmployee, setSavedEmployee] = useState<string | undefined>();
+  const [isSequential, setIsSequential] = useState(false);
+  const [startId, setStartId] = useState("");
+  const [endId, setEndId] = useState("");
 
   // Select the appropriate schema based on useSimpleSchema and couponType
   const formSchema = useSimpleSchema
@@ -252,15 +251,27 @@ export function ProfileForm({
   };
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(
-      useSimpleSchema
-        ? couponType === "klein"
-          ? oldSmallCoupon
-          : oldCoupon
-        : couponType === "klein"
-        ? newSmallCoupon
-        : newCoupon
-    ),
+    resolver: async (values, context, options) => {
+      // When in sequential mode with pending coupons, bypass ID field validation
+      if (isMultiMode && isSequential && pendingCoupons.length > 0) {
+        // For sequential mode, return valid with no errors
+        return {
+          values,
+          errors: {},
+        };
+      }
+
+      // Normal validation for standard mode
+      return zodResolver(
+        useSimpleSchema
+          ? couponType === "klein"
+            ? oldSmallCoupon
+            : oldCoupon
+          : couponType === "klein"
+          ? newSmallCoupon
+          : newCoupon
+      )(values, context, options);
+    },
     defaultValues: {
       id: defaultId || "",
       createdAt: undefined as unknown as Date,
@@ -281,7 +292,13 @@ export function ProfileForm({
       // Save location and employee from first coupon
       if (pendingCoupons.length === 0 && !useSimpleSchema) {
         const newFormValues = formValues as {
-          location: "Braugasse" | "Transit" | "Pit Stop" | "Wirges" | "Büro";
+          location:
+            | "Braugasse"
+            | "Transit"
+            | "Pit Stop"
+            | "Wirges"
+            | "Büro"
+            | "Eiswagen";
           employee: string;
         };
         setSavedLocation(newFormValues.location);
@@ -316,10 +333,45 @@ export function ProfileForm({
     setIsLoading(true);
 
     try {
-      // Submit all pending coupons if in multi mode, otherwise just submit the current one
+      // In sequential mode, we've already generated and validated all IDs
+      // and added them to pendingCoupons, so we only use those
       const couponsToSubmit = isMultiMode
-        ? [...pendingCoupons, formValues]
+        ? isSequential
+          ? pendingCoupons
+          : [...pendingCoupons, formValues]
         : [formValues];
+
+      // Ensure all coupons have location and employee set if in multi mode
+      if (isMultiMode && !useSimpleSchema && savedLocation && savedEmployee) {
+        for (let i = 0; i < couponsToSubmit.length; i++) {
+          const coupon = couponsToSubmit[i] as Partial<{
+            id: string;
+            location:
+              | "Braugasse"
+              | "Transit"
+              | "Pit Stop"
+              | "Wirges"
+              | "Büro"
+              | "Eiswagen";
+            employee: string;
+            couponType: "value" | "klein";
+            firstValue?: number;
+            restValue?: number;
+          }>;
+          if (!coupon.location) {
+            couponsToSubmit[i] = {
+              ...couponsToSubmit[i],
+              location: savedLocation,
+            } as FormValues;
+          }
+          if (!coupon.employee) {
+            couponsToSubmit[i] = {
+              ...couponsToSubmit[i],
+              employee: savedEmployee,
+            } as FormValues;
+          }
+        }
+      }
 
       for (const couponValues of couponsToSubmit) {
         if (useSimpleSchema) {
@@ -341,7 +393,7 @@ export function ProfileForm({
           requestData = {
             ...baseData,
             couponType: "klein",
-            firstValue: 0,
+            firstValue: 2.4,
             usedValue: 0,
             restValue: 0,
           };
@@ -390,6 +442,7 @@ export function ProfileForm({
             body: JSON.stringify(requestData),
           }
         );
+        console.log("req", requestData);
 
         const data = await response.json();
         if (!response.ok)
@@ -410,9 +463,13 @@ export function ProfileForm({
           description: (
             <span>
               {isMultiMode ? (
-                `${
-                  pendingCoupons.length + 1
-                } Gutscheine wurden erfolgreich erstellt.`
+                isSequential ? (
+                  `${pendingCoupons.length} Gutscheine wurden erfolgreich erstellt.`
+                ) : (
+                  `${
+                    pendingCoupons.length + 1
+                  } Gutscheine wurden erfolgreich erstellt.`
+                )
               ) : (
                 <>
                   Der Gutschein <strong>{formValues.id}</strong> wurde
@@ -448,7 +505,9 @@ export function ProfileForm({
         className={
           pendingCoupons.length > 0 && couponType !== "klein"
             ? "w-[360px]"
-            : "w-max"
+            : !isSequential
+            ? "w-max"
+            : ""
         }>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
@@ -478,310 +537,480 @@ export function ProfileForm({
               </div>
             ) : (
               <>
-                <div
-                  className={
-                    useSimpleSchema
-                      ? "grid grid-cols-2 gap-2"
-                      : couponType === "klein"
-                      ? pendingCoupons.length > 0
-                        ? "flex gap-2"
-                        : "grid grid-cols-[110px_160px_130px] gap-2"
-                      : "grid grid-cols-2 gap-x-4 gap-y-2"
-                  }>
-                  {/* ID */}
-                  <FormField
-                    control={form.control}
-                    name="id"
-                    render={({ field, fieldState }) => (
-                      <FormItem>
-                        <div
-                          className={
-                            isMultiMode &&
-                            couponType === "klein" &&
-                            pendingCoupons.length > 0
-                              ? "flex pl-1 gap-4 items-baseline"
-                              : "space-y-2"
-                          }>
-                          <FormLabel
-                            className={cn(
-                              fieldState.invalid && "text-red-500"
-                            )}>
-                            Nummer
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Nummer"
-                              {...field}
-                              onBlur={(e) => {
-                                field.onBlur();
-                                if (field.value) {
-                                  form.trigger("id");
-                                  console.log(e);
-                                }
-                              }}
-                            />
-                          </FormControl>
+                {isSequential && isConfirming ? (
+                  <div className="flex flex-col items-center gap-6 my-4">
+                    <div className="space-y-4 text-center">
+                      <div className="space-y-1">
+                        <h3 className="text-2xl font-semibold">
+                          {pendingCoupons.length}{" "}
+                          {pendingCoupons.length === 1
+                            ? "Gutschein"
+                            : "Gutscheine"}
+                        </h3>
+                      </div>
+                      <div className="space-y-2 text-lg">
+                        <div>
+                          <span className="text-muted-foreground">
+                            Erster Gutschein:{" "}
+                          </span>
+                          <span className="font-medium">
+                            {pendingCoupons[0]?.id}
+                          </span>
                         </div>
-                        <FormMessage className="text-sm w-max" />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Betrag */}
-                  {couponType === "value" && (
-                    <>
-                      {useSimpleSchema ? (
-                        <FormField
-                          control={form.control}
-                          name="restValue"
-                          render={({ field, fieldState }) => (
-                            <FormItem>
-                              <FormLabel
-                                className={cn(
-                                  fieldState.invalid && "text-red-500"
-                                )}>
-                                Betrag auf dem Gutschein
-                              </FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <Input
-                                    placeholder="Betrag"
-                                    type="number"
-                                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                    value={field.value ?? ""}
-                                    onChange={(e) =>
-                                      field.onChange(
-                                        e.target.value
-                                          ? Number(e.target.value)
-                                          : null
-                                      )
-                                    }
-                                    onBlur={field.onBlur}
-                                    name={field.name}
-                                    ref={field.ref}
-                                  />
-                                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
-                                    €
+                        <div>
+                          <span className="text-muted-foreground">
+                            Letzter Gutschein:{" "}
+                          </span>
+                          <span className="font-medium">
+                            {pendingCoupons[pendingCoupons.length - 1]?.id}
+                          </span>
+                        </div>
+                      </div>
+                      {couponType === "value" && pendingCoupons[0] ? (
+                        <div className=" text-lg">
+                          {(() => {
+                            const couponValue =
+                              (pendingCoupons[0] as z.infer<typeof newCoupon>)
+                                .firstValue ||
+                              (pendingCoupons[0] as z.infer<typeof oldCoupon>)
+                                .restValue ||
+                              0;
+                            return (
+                              <>
+                                <span className="text-muted-foreground">
+                                  Alle Gutscheine im Wert von:
+                                </span>{" "}
+                                <span className="font-medium">
+                                  {formatCurrency(couponValue)}
+                                </span>
+                                <div className="mt-4 p-3 border-2 border-[#FDC30A] rounded-lg bg-[#FDC30A]/10">
+                                  <span className="text-muted-foreground text-xl">
+                                    Gesamtbetrag:{" "}
+                                  </span>
+                                  <span className="font-bold text-2xl">
+                                    {formatCurrency(
+                                      couponValue * pendingCoupons.length
+                                    )}
                                   </span>
                                 </div>
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
+                              </>
+                            );
+                          })()}
+                        </div>
                       ) : (
-                        <FormField
-                          control={form.control}
-                          name="firstValue"
-                          render={({ field, fieldState }) => (
-                            <FormItem>
-                              <FormLabel
-                                className={cn(
-                                  fieldState.invalid && "text-red-500"
-                                )}>
-                                Betrag
-                              </FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <Input
-                                    placeholder="Betrag"
-                                    type="number"
-                                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                    value={field.value ?? ""}
-                                    onChange={(e) =>
-                                      field.onChange(
-                                        e.target.value
-                                          ? Number(e.target.value)
-                                          : null
-                                      )
-                                    }
-                                    onBlur={field.onBlur}
-                                    name={field.name}
-                                    ref={field.ref}
-                                  />
-                                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
-                                    €
-                                  </span>
-                                </div>
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
+                        <div className=" text-lg">
+                          <div className="mt-4 p-3 border-2 border-[#FDC30A] rounded-lg bg-[#FDC30A]/10">
+                            <span className="text-muted-foreground text-xl">
+                              Gesamtbetrag:{" "}
+                            </span>
+                            <span className="font-bold text-2xl">
+                              {formatCurrency(
+                                PREIS_KLEIN * pendingCoupons.length
+                              )}
+                            </span>
+                          </div>
+                        </div>
                       )}
-                    </>
-                  )}
-
-                  {/* Laden */}
-                  {!useSimpleSchema &&
-                    (!isMultiMode || pendingCoupons.length === 0) && (
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className={
+                      useSimpleSchema
+                        ? "grid grid-cols-2 gap-2"
+                        : couponType === "klein"
+                        ? pendingCoupons.length > 0
+                          ? "flex gap-2 items-end"
+                          : `grid  gap-2 ${
+                              isSequential
+                                ? "grid-cols-[210px_130px_130px]"
+                                : "grid-cols-[110px_130px_130px]"
+                            }`
+                        : "grid grid-cols-2 gap-x-4 gap-y-2"
+                    }>
+                    {/* ID and Betrag */}
+                    <div
+                      className={cn(
+                        couponType === "value" &&
+                          "col-span-2 grid grid-cols-2 gap-2"
+                      )}>
                       <FormField
                         control={form.control}
-                        name="location"
+                        name="id"
                         render={({ field, fieldState }) => (
                           <FormItem>
-                            <FormLabel
-                              className={cn(
-                                fieldState.invalid && "text-red-500"
-                              )}>
-                              Laden
-                            </FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Wo bist du Babe" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="Braugasse">
-                                  Braugasse
-                                </SelectItem>
-                                <SelectItem value="Transit">Transit</SelectItem>
-                                <SelectItem value="Pit Stop">
-                                  Pit Stop
-                                </SelectItem>
-                                <SelectItem value="Wirges">Wirges</SelectItem>
-                                <SelectItem value="Büro">Büro</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </FormItem>
-                        )}
-                      />
-                    )}
-
-                  {/* Mitarbeiter */}
-                  {!useSimpleSchema &&
-                    (!isMultiMode || pendingCoupons.length === 0) && (
-                      <FormField
-                        control={form.control}
-                        name="employee"
-                        render={({ field, fieldState }) => (
-                          <FormItem className="relative">
-                            <FormLabel
-                              className={cn(
-                                fieldState.invalid && "text-red-500"
-                              )}>
-                              Mitarbeiter
-                            </FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Input
-                                  placeholder="Name"
-                                  {...field}
-                                  onChange={(e) => {
-                                    field.onChange(e);
-                                    const suggestions = filterSuggestions(
-                                      e.target.value
-                                    );
-                                    setEmployeeSuggestions(suggestions);
-                                    setShowSuggestions(true);
-                                  }}
-                                  onFocus={() => setShowSuggestions(true)}
-                                  onBlur={() => {
-                                    // Delay hiding suggestions to allow clicking on them
-                                    setTimeout(
-                                      () => setShowSuggestions(false),
-                                      200
-                                    );
-                                  }}
-                                />
-                                {showSuggestions &&
-                                  employeeSuggestions.length > 0 && (
-                                    <div
-                                      className={cn(
-                                        "absolute z-[99999] bg-white border rounded-md shadow-lg overflow-y-auto",
-                                        couponType === "klein"
-                                          ? "w-[133px]"
-                                          : "w-[210px]"
-                                      )}
-                                      style={{
-                                        maxHeight: "160px",
-                                        ...(couponType === "klein"
-                                          ? { top: "100%", marginTop: "4px" }
-                                          : {
-                                              bottom: "100%",
-                                              marginBottom: "4px",
-                                            }),
-                                        left: 0,
-                                      }}>
-                                      {employeeSuggestions.map(
-                                        (name, index) => (
-                                          <div
-                                            key={index}
-                                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                            onClick={() => {
-                                              field.onChange(name);
-                                              setEmployeeSuggestions([]);
-                                              setShowSuggestions(false);
-                                            }}>
-                                            {name}
-                                          </div>
-                                        )
-                                      )}
+                            <div
+                              className={
+                                isMultiMode &&
+                                couponType === "klein" &&
+                                pendingCoupons.length > 0
+                                  ? "flex pl-1 gap-4 items-baseline"
+                                  : "space-y-2"
+                              }>
+                              <FormLabel
+                                className={cn(
+                                  fieldState.invalid && "text-red-500",
+                                  isMultiMode && "flex justify-between mt-[4px]"
+                                )}>
+                                {isSequential && isMultiMode
+                                  ? "Nummernbereich"
+                                  : "Nummer"}
+                                {isMultiMode &&
+                                  !useSimpleSchema &&
+                                  pendingCoupons.length == 0 && (
+                                    <div className="flex items-center space-x-2">
+                                      <Switch
+                                        checked={isSequential}
+                                        onCheckedChange={setIsSequential}
+                                        id="sequential-mode"
+                                      />
                                     </div>
                                   )}
-                              </div>
-                            </FormControl>
+                              </FormLabel>
+                              {!(isSequential && isMultiMode) ? (
+                                <FormControl
+                                  style={{
+                                    marginTop:
+                                      isMultiMode && pendingCoupons.length > 0
+                                        ? "14px"
+                                        : undefined,
+                                  }}>
+                                  <Input
+                                    placeholder="Nummer"
+                                    {...field}
+                                    onBlur={(e) => {
+                                      field.onBlur();
+                                      if (field.value) {
+                                        form.trigger("id");
+                                        console.log(e);
+                                      }
+                                    }}
+                                  />
+                                </FormControl>
+                              ) : (
+                                <div className="flex gap-2 w-[210px]">
+                                  <div className="w-1/2">
+                                    <Label
+                                      htmlFor="start-id"
+                                      className="block mb-2">
+                                      Von
+                                    </Label>
+                                    <Input
+                                      id="start-id"
+                                      placeholder="z.B. 100H"
+                                      value={startId}
+                                      onChange={(e) =>
+                                        setStartId(e.target.value.toUpperCase())
+                                      }
+                                    />
+                                  </div>
+                                  <div className="w-1/2">
+                                    <Label
+                                      htmlFor="end-id"
+                                      className="block mb-2">
+                                      Bis
+                                    </Label>
+                                    <Input
+                                      id="end-id"
+                                      placeholder="z.B. 109H"
+                                      value={endId}
+                                      onChange={(e) =>
+                                        setEndId(e.target.value.toUpperCase())
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <FormMessage className="text-sm w-max" />
                           </FormItem>
                         )}
                       />
+
+                      {/* Betrag */}
+                      {couponType === "value" && (
+                        <>
+                          {useSimpleSchema ? (
+                            <FormField
+                              control={form.control}
+                              name="restValue"
+                              render={({ field, fieldState }) => (
+                                <FormItem>
+                                  <FormLabel
+                                    className={cn(
+                                      fieldState.invalid && "text-red-500"
+                                    )}>
+                                    Betrag auf dem Gutschein
+                                  </FormLabel>
+                                  <FormControl>
+                                    <div className="relative">
+                                      <Input
+                                        placeholder="Betrag"
+                                        type="number"
+                                        className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                        value={field.value ?? ""}
+                                        onChange={(e) =>
+                                          field.onChange(
+                                            e.target.value
+                                              ? Number(e.target.value)
+                                              : null
+                                          )
+                                        }
+                                        onBlur={field.onBlur}
+                                        name={field.name}
+                                        ref={field.ref}
+                                      />
+                                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                                        €
+                                      </span>
+                                    </div>
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          ) : (
+                            <FormField
+                              control={form.control}
+                              name="firstValue"
+                              render={({ field, fieldState }) => (
+                                <FormItem
+                                  className={cn(
+                                    isSequential && isMultiMode && "mt-[22px]"
+                                  )}>
+                                  <FormLabel
+                                    className={cn(
+                                      fieldState.invalid && "text-red-500"
+                                    )}>
+                                    Betrag
+                                  </FormLabel>
+                                  <FormControl>
+                                    <div className="relative">
+                                      <Input
+                                        placeholder="Betrag"
+                                        type="number"
+                                        className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                        value={field.value ?? ""}
+                                        onChange={(e) =>
+                                          field.onChange(
+                                            e.target.value
+                                              ? Number(e.target.value)
+                                              : null
+                                          )
+                                        }
+                                        onBlur={field.onBlur}
+                                        name={field.name}
+                                        ref={field.ref}
+                                      />
+                                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                                        €
+                                      </span>
+                                    </div>
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    {/* Laden and Mitarbeiter */}
+                    <div
+                      className={cn(
+                        "col-span-2 grid gap-2",
+                        pendingCoupons.length == 0
+                          ? couponType === "klein"
+                            ? isMultiMode && isSequential
+                              ? "grid-cols-[150px_110px] mt-[22px]"
+                              : useSimpleSchema
+                              ? "hidden"
+                              : "grid-cols-[150px_110px]"
+                            : "grid-cols-2"
+                          : "block"
+                      )}>
+                      {!useSimpleSchema &&
+                        (!isMultiMode || pendingCoupons.length === 0) && (
+                          <FormField
+                            control={form.control}
+                            name="location"
+                            render={({ field, fieldState }) => (
+                              <FormItem>
+                                <FormLabel
+                                  className={cn(
+                                    fieldState.invalid && "text-red-500"
+                                  )}>
+                                  Laden
+                                </FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Wo bist du Babe" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="Braugasse">
+                                      Braugasse
+                                    </SelectItem>
+                                    <SelectItem value="Transit">
+                                      Transit
+                                    </SelectItem>
+                                    <SelectItem value="Pit Stop">
+                                      Pit Stop
+                                    </SelectItem>
+                                    <SelectItem value="Wirges">
+                                      Wirges
+                                    </SelectItem>
+                                    <SelectItem value="Büro">Büro</SelectItem>
+                                    <SelectItem value="Eiswagen">
+                                      Eiswagen
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </FormItem>
+                            )}
+                          />
+                        )}
+
+                      {!useSimpleSchema &&
+                        (!isMultiMode || pendingCoupons.length === 0) && (
+                          <FormField
+                            control={form.control}
+                            name="employee"
+                            render={({ field, fieldState }) => (
+                              <FormItem className="relative">
+                                <FormLabel
+                                  className={cn(
+                                    fieldState.invalid && "text-red-500"
+                                  )}>
+                                  Mitarbeiter
+                                </FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Input
+                                      placeholder="Name"
+                                      {...field}
+                                      onChange={(e) => {
+                                        field.onChange(e);
+                                        const suggestions = filterSuggestions(
+                                          e.target.value
+                                        );
+                                        setEmployeeSuggestions(suggestions);
+                                        setShowSuggestions(true);
+                                      }}
+                                      onFocus={() => setShowSuggestions(true)}
+                                      onBlur={() => {
+                                        // Delay hiding suggestions to allow clicking on them
+                                        setTimeout(
+                                          () => setShowSuggestions(false),
+                                          200
+                                        );
+                                      }}
+                                    />
+                                    {showSuggestions &&
+                                      employeeSuggestions.length > 0 && (
+                                        <div
+                                          className={cn(
+                                            "absolute z-[99999] bg-white border rounded-md shadow-lg overflow-y-auto",
+                                            couponType === "klein"
+                                              ? "w-[110px]"
+                                              : "w-[210px]"
+                                          )}
+                                          style={{
+                                            maxHeight: "160px",
+                                            ...(couponType === "klein"
+                                              ? {
+                                                  top: "100%",
+                                                  marginTop: "4px",
+                                                }
+                                              : {
+                                                  bottom: "100%",
+                                                  marginBottom: "4px",
+                                                }),
+                                            left: 0,
+                                          }}>
+                                          {employeeSuggestions.map(
+                                            (name, index) => (
+                                              <div
+                                                key={index}
+                                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                                onClick={() => {
+                                                  field.onChange(name);
+                                                  setEmployeeSuggestions([]);
+                                                  setShowSuggestions(false);
+                                                }}>
+                                                {name}
+                                              </div>
+                                            )
+                                          )}
+                                        </div>
+                                      )}
+                                  </div>
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                    </div>
+
+                    {/* Created Date - only for klein coupon type with simple schema */}
+                    {useSimpleSchema && couponType === "klein" && (
+                      <FormField
+                        control={form.control}
+                        name="createdAt"
+                        render={({ field, fieldState }) => {
+                          const currentYear = new Date().getFullYear();
+                          // Don't provide a default value to show placeholder
+                          const yearValue =
+                            field.value instanceof Date
+                              ? field.value.getFullYear().toString()
+                              : "";
+
+                          // Generate array of years from 2000 to current year
+                          const years = Array.from(
+                            { length: currentYear - 1999 },
+                            (_, i) => (2000 + i).toString()
+                          ).reverse(); // Reverse to show newest years first
+
+                          return (
+                            <FormItem>
+                              <FormLabel
+                                className={cn(
+                                  fieldState.invalid && "text-red-500"
+                                )}>
+                                Datum auf dem Gutschein
+                              </FormLabel>
+                              <Select
+                                onValueChange={(value) => {
+                                  field.onChange(
+                                    new Date(parseInt(value), 4, 15)
+                                  );
+                                }}
+                                value={yearValue}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Jahr auswählen" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {years.map((year) => (
+                                    <SelectItem key={year} value={year}>
+                                      {year}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
+                      />
                     )}
+                  </div>
+                )}
 
-                  {/* Created Date - only for klein coupon type with simple schema */}
-                  {useSimpleSchema && couponType === "klein" && (
-                    <FormField
-                      control={form.control}
-                      name="createdAt"
-                      render={({ field, fieldState }) => {
-                        const currentYear = new Date().getFullYear();
-                        // Don't provide a default value to show placeholder
-                        const yearValue =
-                          field.value instanceof Date
-                            ? field.value.getFullYear().toString()
-                            : "";
-
-                        // Generate array of years from 2000 to current year
-                        const years = Array.from(
-                          { length: currentYear - 1999 },
-                          (_, i) => (2000 + i).toString()
-                        ).reverse(); // Reverse to show newest years first
-
-                        return (
-                          <FormItem>
-                            <FormLabel
-                              className={cn(
-                                fieldState.invalid && "text-red-500"
-                              )}>
-                              Datum auf dem Gutschein
-                            </FormLabel>
-                            <Select
-                              onValueChange={(value) => {
-                                field.onChange(
-                                  new Date(parseInt(value), 4, 15)
-                                );
-                              }}
-                              value={yearValue}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Jahr auswählen" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {years.map((year) => (
-                                  <SelectItem key={year} value={year}>
-                                    {year}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        );
-                      }}
-                    />
-                  )}
-                </div>
-
+                {/*Lower part of Dialog: buttons...*/}
                 <div className="flex justify-end mt-4">
                   {!isConfirming ? (
                     <div className="flex gap-2 w-full">
@@ -789,6 +1018,150 @@ export function ProfileForm({
                         type="button"
                         onClick={async () => {
                           try {
+                            // Handle sequential mode
+                            if (
+                              isMultiMode &&
+                              isSequential &&
+                              startId &&
+                              endId
+                            ) {
+                              // Parse the IDs to extract pattern
+                              const startMatch =
+                                startId.match(/^(\D*)(\d+)(\D*)$/);
+                              const endMatch = endId.match(/^(\D*)(\d+)(\D*)$/);
+
+                              if (startMatch && endMatch) {
+                                const [
+                                  ,
+                                  startPrefix,
+                                  startNumber,
+                                  startSuffix,
+                                ] = startMatch;
+                                const [, endPrefix, endNumber, endSuffix] =
+                                  endMatch;
+
+                                // Verify that prefix and suffix match
+                                if (
+                                  startPrefix !== endPrefix ||
+                                  startSuffix !== endSuffix
+                                ) {
+                                  toast({
+                                    variant: "destructive",
+                                    title: "Format-Fehler",
+                                    description:
+                                      "Prefix und Suffix müssen übereinstimmen (z.B. 100H und 109H).",
+                                  });
+                                  return;
+                                }
+
+                                // Parse numbers and check range
+                                const start = parseInt(startNumber, 10);
+                                const end = parseInt(endNumber, 10);
+
+                                if (isNaN(start) || isNaN(end) || start > end) {
+                                  toast({
+                                    variant: "destructive",
+                                    title: "Bereichs-Fehler",
+                                    description:
+                                      "Der Startwert muss kleiner als der Endwert sein.",
+                                  });
+                                  return;
+                                }
+
+                                // Generate all IDs in the range
+                                const generatedIds = [];
+                                for (let i = start; i <= end; i++) {
+                                  const newId = `${startPrefix}${i
+                                    .toString()
+                                    .padStart(
+                                      startNumber.length,
+                                      "0"
+                                    )}${startSuffix}`;
+                                  generatedIds.push(newId);
+                                }
+
+                                // Validate other required fields first
+                                let fieldsToValidate = ["location", "employee"];
+                                if (couponType === "value") {
+                                  fieldsToValidate.push("firstValue");
+                                }
+
+                                const isValid = await form.trigger(
+                                  fieldsToValidate as (keyof FormValues)[]
+                                );
+                                if (!isValid) {
+                                  return;
+                                }
+
+                                const baseValues = form.getValues();
+
+                                // Add all generated coupons to pending
+                                for (const id of generatedIds) {
+                                  let couponValues: {
+                                    id: string;
+                                    location:
+                                      | "Braugasse"
+                                      | "Transit"
+                                      | "Pit Stop"
+                                      | "Wirges"
+                                      | "Büro"
+                                      | "Eiswagen";
+                                    employee: string;
+                                    couponType: "value" | "klein";
+                                    firstValue?: number;
+                                  } = {
+                                    id,
+                                    location:
+                                      savedLocation ||
+                                      (
+                                        baseValues as {
+                                          location:
+                                            | "Braugasse"
+                                            | "Transit"
+                                            | "Pit Stop"
+                                            | "Wirges"
+                                            | "Büro"
+                                            | "Eiswagen";
+                                        }
+                                      ).location,
+                                    employee:
+                                      savedEmployee ||
+                                      (baseValues as { employee: string })
+                                        .employee,
+                                    couponType: couponType as "value" | "klein",
+                                  };
+
+                                  if (couponType === "value") {
+                                    couponValues.firstValue =
+                                      (baseValues as { firstValue: number })
+                                        .firstValue || 0;
+                                  }
+
+                                  setPendingCoupons((prev) => [
+                                    ...prev,
+                                    couponValues,
+                                  ]);
+                                }
+
+                                // Reset the form and clear the sequential inputs
+                                form.reset({
+                                  ...getDefaultValues(),
+                                  location: savedLocation,
+                                  employee: savedEmployee,
+                                });
+                                setStartId("");
+                                setEndId("");
+                                setIsConfirming(true);
+
+                                toast({
+                                  title: "Gutscheine hinzugefügt",
+                                  description: `${generatedIds.length} Gutscheine wurden zur Liste hinzugefügt`,
+                                  duration: 2000,
+                                });
+                                return;
+                              }
+                            }
+
                             // Only validate relevant fields based on the context
                             const fieldsToValidate =
                               isMultiMode && pendingCoupons.length > 0
@@ -832,7 +1205,8 @@ export function ProfileForm({
                                       | "Transit"
                                       | "Pit Stop"
                                       | "Wirges"
-                                      | "Büro";
+                                      | "Büro"
+                                      | "Eiswagen";
                                     employee: string;
                                   };
                                   setSavedLocation(newFormValues.location);
@@ -868,23 +1242,25 @@ export function ProfileForm({
                           }
                         }}
                         className="bg-[#FDC30A] hover:bg-[#e3af09] text-black flex-1">
-                        {isMultiMode
+                        {isMultiMode && !isSequential
                           ? pendingCoupons.length > 0
                             ? "Weiteren hinzufügen"
                             : "Hinzufügen"
                           : "Erstellen"}
                       </Button>
-                      {isMultiMode && pendingCoupons.length > 0 && (
-                        <Button
-                          type="button"
-                          className="bg-green-600 hover:bg-green-700 text-white flex-1"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setIsConfirming(true);
-                          }}>
-                          Alle erstellen ({pendingCoupons.length + 1})
-                        </Button>
-                      )}
+                      {isMultiMode &&
+                        pendingCoupons.length > 0 &&
+                        !isSequential && (
+                          <Button
+                            type="button"
+                            className="bg-green-600 hover:bg-green-700 text-white flex-1"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setIsConfirming(true);
+                            }}>
+                            Alle erstellen ({pendingCoupons.length + 1})
+                          </Button>
+                        )}
                     </div>
                   ) : (
                     <div className="flex gap-2 justify-between w-full">
@@ -910,7 +1286,55 @@ export function ProfileForm({
                       <Button
                         className="bg-[#FDC30A] hover:bg-[#e3af09] text-black contrast-125"
                         type="submit"
-                        disabled={isLoading}>
+                        disabled={isLoading}
+                        onClick={(e) => {
+                          // In sequential mode with pending coupons, bypass form validation entirely
+                          if (
+                            isMultiMode &&
+                            isSequential &&
+                            pendingCoupons.length > 0
+                          ) {
+                            // Sequential mode coupons are already validated and prepared
+                            console.log("Form state (Sequential mode):", {
+                              pendingCoupons,
+                              isValid: true,
+                            });
+
+                            // Explicitly set form as valid to allow submission
+                            form.clearErrors();
+
+                            // Skip validation by directly setting a dummy ID value
+                            // This ensures the form validation passes even though the ID field isn't visible
+                            form.setValue("id", "SEQUENTIAL_MODE");
+
+                            // Manually trigger form submission for sequential mode
+                            e.preventDefault();
+                            form.handleSubmit(handleSubmit)(e);
+                            return;
+                          }
+
+                          // For non-sequential multi-mode, ensure the current form values include savedLocation and savedEmployee
+                          if (
+                            isMultiMode &&
+                            !isSequential &&
+                            pendingCoupons.length > 0
+                          ) {
+                            // Update current form with saved location and employee
+                            if (savedLocation && !useSimpleSchema)
+                              form.setValue("location", savedLocation);
+                            if (savedEmployee && !useSimpleSchema)
+                              form.setValue("employee", savedEmployee);
+                          }
+
+                          // Normal validation for other cases
+                          const isValid = form.formState.isValid;
+                          console.log("Form state:", {
+                            values: form.getValues(),
+                            errors: form.formState.errors,
+                            isValid: isValid,
+                            isDirty: form.formState.isDirty,
+                          });
+                        }}>
                         {isLoading ? (
                           <>
                             <Icons.spinner className="h-4 w-4 animate-spin" />
@@ -928,8 +1352,8 @@ export function ProfileForm({
           </form>
         </Form>
       </div>
-
-      {isMultiMode && pendingCoupons.length > 0 && (
+      {/* Display pending coupons*/}
+      {isMultiMode && pendingCoupons.length > 0 && !isSequential && (
         <div className="flex-1 border-l pl-2">
           <div
             className={cn(
