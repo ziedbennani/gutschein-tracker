@@ -685,6 +685,11 @@ export function ProfileForm({
                                         console.log(e);
                                       }
                                     }}
+                                    onChange={(e) =>
+                                      field.onChange(
+                                        e.target.value.toUpperCase()
+                                      )
+                                    }
                                   />
                                 </FormControl>
                               ) : (
