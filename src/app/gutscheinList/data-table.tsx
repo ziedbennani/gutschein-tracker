@@ -307,22 +307,7 @@ export function DataTable<TData, TValue>({
                 ))}
               </TableHeader>
               <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
+                {table.getRowModel().rows?.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
@@ -364,8 +349,6 @@ export function DataTable<TData, TValue>({
                           className="p-4 gap-2 mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh]"
                           style={{
                             width: "fit-content",
-                            // minWidth: "425px",
-                            // maxWidth: "550px",
                             transition: "width 0.3s ease",
                           }}
                           aria-describedby={undefined}>
@@ -454,6 +437,180 @@ export function DataTable<TData, TValue>({
                       )}
                     </TableCell>
                   </TableRow>
+                ) : table.getRowModel().rows?.length === 1 ? (
+                  table.getRowModel().rows.map((row) => (
+                    <>
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && "selected"}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                      <TableRow>
+                        <TableCell
+                          colSpan={columns.length}
+                          className="h-24 text-center">
+                          <Dialog
+                            open={typeDialogOpen}
+                            onOpenChange={setTypeDialogOpen}>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="mx-auto bg-[#FDC30A] hover:bg-[#e3af09] text-black">
+                                Alten Gutschein einlösen
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="p-5 gap-5 max-w-[95vw] w-[496px] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-fit">
+                              <DialogHeader>
+                                <DialogTitle>Gutschein-Typ wählen</DialogTitle>
+                                <Separator className="my-3" />
+                              </DialogHeader>
+                              <div className="grid grid-cols-2 gap-4">
+                                <Button
+                                  onClick={handleValueCouponSelect}
+                                  className="h-12 w-full flex flex-col bg-gradient-to-r from-[#FDC30A] to-[#FFD700] text-[#333333] font-semibold ">
+                                  Normal
+                                </Button>
+                                <Button
+                                  onClick={handleKleinBecherSelect}
+                                  className="h-12 w-full flex flex-col bg-gradient-to-r from-[#FFD700] to-[#FDC30A] text-[#333333] font-semibold">
+                                  Klein Becher
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                          <Dialog
+                            open={isOldCouponDialogOpen}
+                            onOpenChange={setIsOldCouponDialogOpen}>
+                            <DialogContent
+                              onPointerDownOutside={(e) => e.preventDefault()}
+                              className="p-4 gap-2 mx-auto mt-2 top-0 translate-y-0 overflow-y-auto max-h-[90vh]"
+                              style={{
+                                width: "fit-content",
+                                transition: "width 0.3s ease",
+                              }}
+                              aria-describedby={undefined}>
+                              <DialogHeader>
+                                <DialogTitle>
+                                  Gutschein Daten eintragen
+                                </DialogTitle>
+                                <Separator className="my-4" />
+                              </DialogHeader>
+                              <ProfileForm
+                                setIsRedeemReady={setIsRedeemReady}
+                                setDialogOpen={setIsOldCouponDialogOpen}
+                                setCreatedCoupon={setCreatedCoupon}
+                                useSimpleSchema={true}
+                                couponType={couponType}
+                                defaultId={searchValue}
+                              />
+                            </DialogContent>
+                          </Dialog>
+
+                          {isRedeemReady && (
+                            <Dialog
+                              open={isRedeemReady}
+                              onOpenChange={setIsRedeemReady}>
+                              {createdCoupon == null ? (
+                                <DialogContent
+                                  className="flex p-4 [&>button]:hidden max-w-[95vw] w-[496px] mx-auto mt-2 top-0 translate-y-0 overflow-y-auto "
+                                  style={
+                                    couponType == "value"
+                                      ? {
+                                          width: "496.06px",
+                                          height: "300.75px",
+                                        }
+                                      : {
+                                          width: "470.92px",
+                                          height: "202.77px",
+                                        }
+                                  }
+                                  onPointerDownOutside={(e) =>
+                                    e.preventDefault()
+                                  }
+                                  aria-describedby={undefined}>
+                                  <div className="flex-1 flex items-center justify-center">
+                                    <DialogHeader>
+                                      <DialogTitle></DialogTitle>
+                                    </DialogHeader>
+                                    <div className="flex flex-col items-center">
+                                      <Icons.spinner className="h-12 w-12 animate-spin" />
+                                      <p className="text-sm text-muted-foreground mt-2">
+                                        Einen Moment bitte...
+                                      </p>
+                                    </div>
+                                  </div>
+                                </DialogContent>
+                              ) : (
+                                <DialogContent
+                                  className="flex flex-col p-4 gap-6 max-w-[95vw] w-full mx-auto mt-2 top-0 translate-y-0 max-h-[90vh] lg:max-w-fit"
+                                  onPointerDownOutside={(e) =>
+                                    e.preventDefault()
+                                  }
+                                  aria-describedby={undefined}>
+                                  <div className="flex-1">
+                                    <DialogHeader>
+                                      <DialogTitle>
+                                        <div className="flex justify-around">
+                                          <span className="text-sm font-medium">
+                                            Nummer{" "}
+                                            <span className="text-base font-bold">
+                                              {createdCoupon.id}
+                                            </span>
+                                          </span>
+                                          {createdCoupon.couponType ===
+                                            "value" && (
+                                            <span className="text-sm font-medium">
+                                              Betrag{" "}
+                                              <span className="text-base font-bold">
+                                                {formatCurrency(
+                                                  createdCoupon.restValue
+                                                )}{" "}
+                                              </span>
+                                            </span>
+                                          )}
+                                        </div>
+                                        <Separator className="my-3" />
+                                      </DialogTitle>
+                                    </DialogHeader>
+                                    <RedeemForm
+                                      coupon={createdCoupon}
+                                      setDialogOpen={setIsOldCouponDialogOpen}
+                                      onCouponRedeemed={() => {}}
+                                      setIsRedeemReady={setIsRedeemReady}
+                                      setCreatedCoupon={setCreatedCoupon}
+                                      couponType={couponType}
+                                    />
+                                  </div>
+                                </DialogContent>
+                              )}
+                            </Dialog>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    </>
+                  ))
+                ) : (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
                 )}
               </TableBody>
             </Table>
