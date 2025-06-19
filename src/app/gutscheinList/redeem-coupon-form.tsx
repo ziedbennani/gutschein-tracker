@@ -326,7 +326,7 @@ export function RedeemForm({
                         Mitarbeiter
                       </FormLabel>
                       <FormControl>
-                        <div className="relative">
+                        <div className="">
                           <Input
                             placeholder="Name"
                             {...field}
