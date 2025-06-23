@@ -43,6 +43,7 @@ export function DataTableToolbar<TData>({
     if (!isRedeemReady) {
       table.resetColumnFilters();
     }
+    console.log("isShaking", isShaking);
   }, [isRedeemReady]);
 
   // Add useEffect to check if ID column has a filter value

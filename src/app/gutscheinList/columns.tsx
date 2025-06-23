@@ -11,7 +11,7 @@ import {
 
 import { Separator } from "@/components/ui/separator";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { RedeemForm } from "./redeem-coupon-form";
 import { formatCurrency } from "./utils";
 
