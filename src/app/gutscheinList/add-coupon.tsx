@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -26,7 +26,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -181,6 +180,13 @@ interface ProfileFormProps {
   setIsRedeemReady?: (ready: boolean) => void;
   couponType: string;
   defaultId?: string;
+  defaultLocation?:
+    | "Braugasse"
+    | "Transit"
+    | "Pit Stop"
+    | "Wirges"
+    | "Büro"
+    | "Eiswagen";
 }
 
 export function ProfileForm({
@@ -190,6 +196,7 @@ export function ProfileForm({
   setIsRedeemReady,
   couponType,
   defaultId,
+  defaultLocation,
 }: ProfileFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -234,7 +241,7 @@ export function ProfileForm({
       return {
         id: "",
         employee: savedEmployee || "",
-        location: savedLocation,
+        location: savedLocation || defaultLocation,
         couponType: "klein" as const,
       };
     } else {
@@ -242,7 +249,7 @@ export function ProfileForm({
       const defaults = {
         id: "",
         employee: savedEmployee || "",
-        location: savedLocation,
+        location: savedLocation || defaultLocation,
         couponType: "value" as const,
       };
       // This cast is necessary to handle the optional/required field discrepancies
@@ -276,6 +283,7 @@ export function ProfileForm({
       id: defaultId || "",
       createdAt: undefined as unknown as Date,
       couponType: couponType as "value" | "klein",
+      location: defaultLocation,
     },
   });
 
@@ -844,11 +852,11 @@ export function ProfileForm({
                                   className={cn(
                                     fieldState.invalid && "text-red-500"
                                   )}>
-                                  Laden
+                                  Wo bist du Babe ?
                                 </FormLabel>
                                 <Select
                                   onValueChange={field.onChange}
-                                  defaultValue={field.value}>
+                                  defaultValue={defaultLocation}>
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder="Wo bist du Babe" />
@@ -1400,7 +1408,17 @@ export function ProfileForm({
   );
 }
 
-const AddCoupon = () => {
+const AddCoupon = ({
+  defaultLocation,
+}: {
+  defaultLocation?:
+    | "Braugasse"
+    | "Transit"
+    | "Pit Stop"
+    | "Wirges"
+    | "Büro"
+    | "Eiswagen";
+}) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [createdCoupon, setCreatedCoupon] = useState<Coupon | null>(null);
   const [couponType, setCouponType] = useState<string>("");
@@ -1410,7 +1428,6 @@ const AddCoupon = () => {
     setCouponType("value");
     setTypeDialogOpen(false);
     setDialogOpen(true);
-    console.log(createdCoupon);
   };
 
   const handleKleinBecherSelect = () => {
@@ -1432,7 +1449,9 @@ const AddCoupon = () => {
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4">
             <Button
-              onClick={handleValueCouponSelect}
+              onClick={() => {
+                handleValueCouponSelect();
+              }}
               className="h-12 w-full flex flex-col bg-gradient-to-r from-[#FDC30A] to-[#FFD700] text-[#333333] font-semibold">
               Normal
             </Button>
@@ -1470,6 +1489,7 @@ const AddCoupon = () => {
             setDialogOpen={setDialogOpen}
             setCreatedCoupon={setCreatedCoupon}
             couponType={couponType}
+            defaultLocation={defaultLocation}
           />
         </DialogContent>
       </Dialog>

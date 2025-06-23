@@ -41,6 +41,7 @@ const formSchema = z
       "Transit",
       "Pit Stop",
       "Wirges",
+      "Büro",
       "Eiswagen",
     ]),
     tip: z.number().nullable().optional(),
@@ -50,7 +51,6 @@ const formSchema = z
       .transform((val) => val?.toUpperCase()),
   })
   .refine((data) => {
-    console.log("data", data);
     return true;
   });
 
@@ -61,6 +61,13 @@ interface RedeemFormProps {
   setIsRedeemReady?: (ready: boolean) => void;
   setCreatedCoupon?: (coupon: Coupon | null) => void;
   couponType: string;
+  defaultLocation?:
+    | "Braugasse"
+    | "Transit"
+    | "Pit Stop"
+    | "Wirges"
+    | "Büro"
+    | "Eiswagen";
 }
 
 interface FieldType {
@@ -73,6 +80,7 @@ export function RedeemForm({
   onCouponRedeemed,
   setIsRedeemReady,
   setCreatedCoupon,
+  defaultLocation,
 }: RedeemFormProps) {
   const { toast } = useToast();
   const router = useRouter();
@@ -89,7 +97,7 @@ export function RedeemForm({
         ? {
             usedValue: undefined,
             employee: "",
-            location: undefined,
+            location: defaultLocation,
             tip: undefined,
             newId: "",
           }
@@ -97,7 +105,7 @@ export function RedeemForm({
             // For klein coupons
             usedValue: 2.4,
             employee: "",
-            location: undefined,
+            location: defaultLocation,
           },
     mode: "onSubmit",
   });
@@ -141,7 +149,6 @@ export function RedeemForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
       });
-      console.log("req", requestData);
       const responseData = await response.json();
       if (!response.ok) {
         throw new Error(responseData.error || "Failed to redeem coupon");
@@ -386,11 +393,11 @@ export function RedeemForm({
                       )}>
                       <FormLabel
                         className={cn(fieldState.invalid && "text-red-500 ")}>
-                        Laden
+                        Wo bist du Babe ?
                       </FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}>
+                        defaultValue={defaultLocation}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Wo bist du Babe" />
@@ -401,6 +408,7 @@ export function RedeemForm({
                           <SelectItem value="Transit">Transit</SelectItem>
                           <SelectItem value="Pit Stop">Pit Stop</SelectItem>
                           <SelectItem value="Wirges">Wirges</SelectItem>
+                          <SelectItem value="Büro">Büro</SelectItem>
                           <SelectItem value="Eiswagen">Eiswagen</SelectItem>
                         </SelectContent>
                       </Select>
@@ -458,7 +466,6 @@ export function RedeemForm({
                     )}
                     onClick={async (e) => {
                       e.preventDefault();
-                      console.log("clicked", coupon.couponType);
 
                       // For klein coupons, set usedValue to 0 if not provided
                       if (coupon.couponType === "klein") {
@@ -467,19 +474,9 @@ export function RedeemForm({
 
                       // Trigger validation on all fields
                       const isValid = await form.trigger();
-                      console.log(
-                        "Form validation result:",
-                        isValid,
-                        form.formState.errors
-                      );
 
                       if (isValid) {
                         setIsConfirming(true);
-                      } else {
-                        console.log(
-                          "Form validation failed:",
-                          form.formState.errors
-                        );
                       }
                     }}>
                     Einlösen

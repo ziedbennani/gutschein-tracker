@@ -39,15 +39,20 @@ const RedeemCouponDialog = ({
   isOpen,
   setIsOpen,
   onCouponRedeemed,
+  defaultLocation,
 }: {
   coupon: Coupon;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   onCouponRedeemed: (couponId: string) => void;
+  defaultLocation?:
+    | "Braugasse"
+    | "Transit"
+    | "Pit Stop"
+    | "Wirges"
+    | "Büro"
+    | "Eiswagen";
 }) => {
-  useEffect(() => {
-    console.log("isOpen[column.tsx] changed to: ", isOpen);
-  }, [isOpen]);
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
@@ -80,6 +85,7 @@ const RedeemCouponDialog = ({
             setDialogOpen={setIsOpen}
             onCouponRedeemed={onCouponRedeemed}
             couponType={coupon.couponType}
+            defaultLocation={defaultLocation}
           />
         </div>
       </DialogContent>
@@ -87,7 +93,15 @@ const RedeemCouponDialog = ({
   );
 };
 
-export const columns: ColumnDef<Coupon>[] = [
+export const createColumns = (
+  defaultLocation?:
+    | "Braugasse"
+    | "Transit"
+    | "Pit Stop"
+    | "Wirges"
+    | "Büro"
+    | "Eiswagen"
+): ColumnDef<Coupon>[] => [
   {
     accessorKey: "id",
     header: "Nummer",
@@ -128,9 +142,7 @@ export const columns: ColumnDef<Coupon>[] = [
     header: "Aktuell",
     cell: (row) => {
       const couponType = row.row.original.couponType;
-      console.log("row", row.row.original);
       const value = row.getValue() as number;
-      console.log("value", value);
       return couponType === "value"
         ? formatCurrency(value)
         : row.row.original.used === false
@@ -177,7 +189,7 @@ export const columns: ColumnDef<Coupon>[] = [
       const coupon = row.original;
 
       const handleCouponRedeemed = (couponId: string) => {
-        console.log(`Call from column.tsx: Coupon redeemed: ${couponId}`);
+        // Coupon redeemed successfully
       };
 
       if (coupon.used) {
@@ -205,9 +217,13 @@ export const columns: ColumnDef<Coupon>[] = [
             isOpen={isDialogOpen}
             setIsOpen={setIsDialogOpen}
             onCouponRedeemed={handleCouponRedeemed}
+            defaultLocation={defaultLocation}
           />
         </div>
       );
     },
   },
 ];
+
+// Backward compatibility - export columns without defaultLocation
+export const columns = createColumns();

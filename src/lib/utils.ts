@@ -73,6 +73,13 @@ export const EMPLOYEE_NAMES = [
   "Helena",
   "Vanessa",
   "Eda",
+  "Nina",
+  "Bleona",
+  "Greta",
+  "Samira",
+  "Viktoria",
+  "Änny",
+  "Valerie",
 
   // Add more names as needed
 ];

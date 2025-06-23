@@ -16,6 +16,13 @@ interface DataTableToolbarProps<TData> {
   isRedeemReady: boolean;
   onRefresh?: () => void;
   onSearchChange?: (value: string) => void;
+  defaultLocation?:
+    | "Braugasse"
+    | "Transit"
+    | "Pit Stop"
+    | "Wirges"
+    | "Büro"
+    | "Eiswagen";
   // createdCoupon: Coupon | null;
 }
 
@@ -24,6 +31,7 @@ export function DataTableToolbar<TData>({
   isRedeemReady,
   onRefresh,
   onSearchChange,
+  defaultLocation,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const router = useRouter();
@@ -34,7 +42,6 @@ export function DataTableToolbar<TData>({
   useEffect(() => {
     if (!isRedeemReady) {
       table.resetColumnFilters();
-      console.log("isRedeemReady", isRedeemReady);
     }
   }, [isRedeemReady]);
 
@@ -76,7 +83,6 @@ export function DataTableToolbar<TData>({
     setTimeout(() => {
       setIsShaking(false);
       schoolPride();
-      console.log("shaking", isShaking);
     }, 1000); // Reset after animation
   };
 
@@ -108,7 +114,7 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
 
-        {!searchActive && <AddCoupon />}
+        {!searchActive && <AddCoupon defaultLocation={defaultLocation} />}
         <div className="flex flex-col items-end">
           <Button
             variant="outline"
