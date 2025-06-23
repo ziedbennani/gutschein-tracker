@@ -51,6 +51,7 @@ const formSchema = z
       .transform((val) => val?.toUpperCase()),
   })
   .refine((data) => {
+    console.log("data", data);
     return true;
   });
 

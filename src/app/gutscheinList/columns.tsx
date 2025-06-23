@@ -189,6 +189,7 @@ export const createColumns = (
       const coupon = row.original;
 
       const handleCouponRedeemed = (couponId: string) => {
+        console.log("couponId", couponId);
         // Coupon redeemed successfully
       };
 
