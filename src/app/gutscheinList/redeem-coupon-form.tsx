@@ -394,14 +394,14 @@ export function RedeemForm({
                       )}>
                       <FormLabel
                         className={cn(fieldState.invalid && "text-red-500 ")}>
-                        Wo bist du Babe ?
+                        Laden auswählen
                       </FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={defaultLocation}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Wo bist du Babe" />
+                            <SelectValue placeholder="Laden auswählen" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
