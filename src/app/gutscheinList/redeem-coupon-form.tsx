@@ -452,7 +452,9 @@ export function RedeemForm({
                         onClick={() => {
                           setFormSubmitted(true);
                         }}>
-                        Gutschein Voll ?
+                        {coupon.id.toUpperCase().startsWith("e")
+                          ? "neue Nummer"
+                          : "Gutschein Voll ?"}
                       </Button>
                     )}
                   </div>
