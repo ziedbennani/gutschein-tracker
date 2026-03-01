@@ -114,7 +114,7 @@ export function RedeemForm({
   const filterSuggestions = (input: string) => {
     if (!input) return [];
     return EMPLOYEE_NAMES.filter((name) =>
-      name.toLowerCase().startsWith(input.toLowerCase())
+      name.toLowerCase().startsWith(input.toLowerCase()),
     );
   };
 
@@ -123,7 +123,7 @@ export function RedeemForm({
     try {
       if (values.newId) {
         const checkResponse = await fetch(
-          `/api/coupons/check-id?id=${values.newId}`
+          `/api/coupons/check-id?id=${values.newId}`,
         );
         const { exists } = await checkResponse.json();
 
@@ -240,7 +240,7 @@ export function RedeemForm({
                             value={field.value ?? ""}
                             onChange={(e) =>
                               field.onChange(
-                                e.target.value ? Number(e.target.value) : null
+                                e.target.value ? Number(e.target.value) : null,
                               )
                             }
                           />
@@ -299,7 +299,7 @@ export function RedeemForm({
                             value={field.value ?? ""}
                             onChange={(e) =>
                               field.onChange(
-                                e.target.value ? Number(e.target.value) : null
+                                e.target.value ? Number(e.target.value) : null,
                               )
                             }
                           />
@@ -318,11 +318,11 @@ export function RedeemForm({
             <div
               className={cn(
                 "flex-1 flex ",
-                coupon.couponType === "klein" ? " flex-col gap-4" : "flex-col"
+                coupon.couponType === "klein" ? " flex-col gap-4" : "flex-col",
               )}>
               <div
                 className={cn(
-                  coupon.couponType === "klein" ? "grid grid-cols-2	 gap-4" : ""
+                  coupon.couponType === "klein" ? "grid grid-cols-2	 gap-4" : "",
                 )}>
                 <FormField
                   control={form.control}
@@ -341,7 +341,7 @@ export function RedeemForm({
                             onChange={(e) => {
                               field.onChange(e);
                               const suggestions = filterSuggestions(
-                                e.target.value
+                                e.target.value,
                               );
                               setEmployeeSuggestions(suggestions);
                               setShowSuggestions(true);
@@ -359,7 +359,7 @@ export function RedeemForm({
                                   "absolute z-[99999] bg-white border rounded-md shadow-lg overflow-y-auto mt-1",
                                   coupon.couponType === "klein"
                                     ? "w-[210px]"
-                                    : "w-[235px]"
+                                    : "w-[235px]",
                                 )}
                                 style={{
                                   maxHeight: "160px",
@@ -390,7 +390,7 @@ export function RedeemForm({
                   render={({ field, fieldState }) => (
                     <FormItem
                       className={cn(
-                        coupon.couponType === "value" ? "mt-2" : "flex-1"
+                        coupon.couponType === "value" ? "mt-2" : "flex-1",
                       )}>
                       <FormLabel
                         className={cn(fieldState.invalid && "text-red-500 ")}>
@@ -429,7 +429,7 @@ export function RedeemForm({
                           <FormItem className="flex flex-col mt-4">
                             <FormLabel
                               className={cn(
-                                fieldState.invalid && "text-red-500"
+                                fieldState.invalid && "text-red-500",
                               )}>
                               Neue Nummer
                             </FormLabel>
@@ -465,7 +465,7 @@ export function RedeemForm({
                     type="button"
                     className={cn(
                       " bg-[#FDC30A] hover:bg-[#e3af09] text-black w-full",
-                      coupon.couponType === "value" && "mt-[2.35rem]"
+                      coupon.couponType === "value" && "mt-[2.35rem]",
                     )}
                     onClick={async (e) => {
                       e.preventDefault();
@@ -506,7 +506,7 @@ export function RedeemForm({
                     <Button
                       className={cn(
                         " bg-[#FDC30A] hover:bg-[#e3af09] text-black contrast-125",
-                        coupon.couponType === "value" && "mb-2 mt-[2.35rem]"
+                        coupon.couponType === "value" && "mb-2 mt-[2.35rem]",
                       )}
                       type="submit"
                       disabled={isLoading}>
