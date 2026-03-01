@@ -55,6 +55,36 @@ const formSchema = z
     return true;
   });
 
+// Custom validation for newId requirement based on coupon ID and restBetrag
+export const getFormSchema = (
+  couponId: string,
+  restBetrag: number | null | undefined,
+) => {
+  return formSchema.refine(
+    (data) => {
+      // If coupon ID starts with "e", newId is required
+      // UNLESS restBetrag is NEGATIVE or ZERO (<= 0)
+      if (couponId.startsWith("e")) {
+        // If restBetrag is negative or zero, newId is NOT required
+        if (
+          restBetrag !== null &&
+          restBetrag !== undefined &&
+          restBetrag <= 0
+        ) {
+          return true;
+        }
+        // Otherwise, newId is required
+        return data.newId && data.newId.trim().length > 0;
+      }
+      return true;
+    },
+    {
+      message: "Hey du ❤️ ",
+      path: ["newId"],
+    },
+  );
+};
+
 interface RedeemFormProps {
   coupon: Coupon;
   setDialogOpen: (open: boolean) => void;
@@ -85,11 +115,11 @@ export function RedeemForm({
 }: RedeemFormProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const [isFormSubmitted, setFormSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [employeeSuggestions, setEmployeeSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [shouldShowNewId, setShouldShowNewId] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -421,7 +451,7 @@ export function RedeemForm({
               <div className="flex mt-auto gap-2 justify-end">
                 {coupon.couponType === "value" && (
                   <div>
-                    {isFormSubmitted ? (
+                    {shouldShowNewId ? (
                       <FormField
                         control={form.control}
                         name="newId"
@@ -435,7 +465,15 @@ export function RedeemForm({
                             </FormLabel>
                             <FormControl>
                               <Input
-                                style={{ width: "139.25px" }}
+                                style={{
+                                  width: "139.25px",
+                                  borderColor: coupon.id.startsWith("e")
+                                    ? "#ef4444"
+                                    : undefined,
+                                  borderWidth: coupon.id.startsWith("e")
+                                    ? "2px"
+                                    : undefined,
+                                }}
                                 placeholder="Nummer"
                                 {...field}
                               />
@@ -450,11 +488,9 @@ export function RedeemForm({
                         variant="default"
                         type="button"
                         onClick={() => {
-                          setFormSubmitted(true);
+                          setShouldShowNewId(true);
                         }}>
-                        {coupon.id.startsWith("e")
-                          ? "neue Nummer"
-                          : "Gutschein Voll ?"}
+                        neue Nummer
                       </Button>
                     )}
                   </div>
@@ -469,16 +505,85 @@ export function RedeemForm({
                     )}
                     onClick={async (e) => {
                       e.preventDefault();
+                      console.log("Einlösen clicked");
 
                       // For klein coupons, set usedValue to 0 if not provided
                       if (coupon.couponType === "klein") {
                         form.setValue("usedValue", 2.4);
                       }
 
-                      // Trigger validation on all fields
-                      const isValid = await form.trigger();
+                      // Calculate restBetrag based on current form values
+                      const usedValue = form.getValues("usedValue") || 0;
+                      const tip = form.getValues("tip") || 0;
+                      const restBetrag = Number(coupon.restValue || 0) - usedValue - tip;
+                      console.log("restBetrag:", restBetrag, "coupon.restValue:", coupon.restValue, "usedValue:", usedValue, "tip:", tip);
+                      console.log("coupon.id.startsWith('e'):", coupon.id.startsWith("e"));
+                      console.log("shouldShowNewId:", shouldShowNewId);
+
+                      // If coupon ID starts with "e" and restBetrag > 0, need neue Nummer
+                      if (coupon.id.startsWith("e") && restBetrag > 0) {
+                        console.log("Neue Nummer required");
+                        // Show the field if not already shown
+                        if (!shouldShowNewId) {
+                          console.log("Showing neue Nummer field with error");
+                          setShouldShowNewId(true);
+                          // Set error immediately
+                          form.setError("newId", { message: "Salut ❤️" });
+                          return;
+                        }
+                        // Second click - check if neue Nummer is filled
+                        const newId = form.getValues("newId");
+                        console.log("newId value:", newId);
+                        if (!newId || newId.trim().length === 0) {
+                          console.log("Setting newId error");
+                          form.setError("newId", { message: "Salut ❤️" });
+                          return;
+                        }
+                      } else {
+                        // restBetrag <= 0, don't need neue Nummer
+                        console.log("Neue Nummer not required");
+                        setShouldShowNewId(false);
+                      }
+
+                      // Manually validate required fields
+                      console.log("Validating required fields");
+                      let isValid = true;
+
+                      // Check employee
+                      const employee = form.getValues("employee");
+                      if (!employee || employee.trim().length === 0) {
+                        form.setError("employee", { message: "Mitarbeiter erforderlich" });
+                        isValid = false;
+                      }
+
+                      // Check location
+                      const location = form.getValues("location");
+                      if (!location) {
+                        form.setError("location", { message: "Laden erforderlich" });
+                        isValid = false;
+                      }
+
+                      // Check usedValue for value coupons
+                      if (coupon.couponType === "value") {
+                        if (usedValue === undefined || usedValue === null || usedValue <= 0) {
+                          form.setError("usedValue", { message: "Betrag erforderlich" });
+                          isValid = false;
+                        }
+                      }
+
+                      // Check newId if required
+                      if (coupon.id.startsWith("e") && restBetrag > 0) {
+                        const newId = form.getValues("newId");
+                        if (!newId || newId.trim().length === 0) {
+                          form.setError("newId", { message: "Salut ❤️" });
+                          isValid = false;
+                        }
+                      }
+
+                      console.log("Manual validation result:", isValid);
 
                       if (isValid) {
+                        console.log("Setting confirming to true");
                         setIsConfirming(true);
                       }
                     }}>

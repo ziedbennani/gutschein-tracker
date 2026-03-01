@@ -284,6 +284,7 @@ export function ProfileForm({
       createdAt: undefined as unknown as Date,
       couponType: couponType as "value" | "klein",
       location: defaultLocation,
+      employee: "",
     },
   });
 

@@ -9,7 +9,9 @@ export default async function DemoPage() {
     // Fetch coupons from the API endpoint instead of directly from Prisma
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL ||
-      "https://gutschein-tracker.vercel.app/";
+      (process.env.NODE_ENV === "development"
+        ? "http://localhost:3000"
+        : "https://gutschein-tracker.vercel.app/");
     const response = await fetch(`${baseUrl}/api/coupons`, {
       cache: "no-store",
       next: { revalidate: 0 },
