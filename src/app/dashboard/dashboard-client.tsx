@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/app/gutscheinList/utils";
@@ -48,8 +48,15 @@ export function DashboardClient({ locations }: DashboardClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(GESAMT);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [dateVon, setDateVon] = useState("");
-  const [dateBis, setDateBis] = useState("");
+
+  // Initialize with yesterday's date
+  const getYesterdayDate = () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return yesterday.toISOString().substring(0, 10);
+  };
+
+  const [dateFilter, setDateFilter] = useState(getYesterdayDate());
   const [search, setSearch] = useState("");
 
   const isGesamt = activeTab === GESAMT;
@@ -69,20 +76,19 @@ export function DashboardClient({ locations }: DashboardClientProps) {
     }));
   }, [isGesamt, activeLocation, locations]);
 
-  // Apply date range + search filter
+  // Apply date + search filter
   const filteredEntries = useMemo(() => {
     const q = search.toLowerCase().trim();
     return allEntries
       .filter((e) => {
-        if (dateVon && e.date < dateVon) return false;
-        if (dateBis && e.date > dateBis) return false;
+        if (dateFilter && e.date !== dateFilter) return false;
         if (q && !e.couponId.toLowerCase().includes(q)) return false;
         return true;
       })
       .sort(
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
       );
-  }, [allEntries, dateVon, dateBis, search]);
+  }, [allEntries, dateFilter, search]);
 
   const filteredTotals = useMemo(() => {
     const redeemed = filteredEntries
@@ -100,7 +106,20 @@ export function DashboardClient({ locations }: DashboardClientProps) {
     };
   }, [filteredEntries]);
 
-  const hasDateFilter = dateVon || dateBis;
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(0);
+  }, [activeTab, dateFilter, search]);
+
+  const hasDateFilter = !!dateFilter;
+
+  const PAGE_SIZE = 20;
+  const [page, setPage] = useState(0);
+  const totalPages = Math.ceil(filteredEntries.length / PAGE_SIZE);
+  const paginatedEntries = filteredEntries.slice(
+    page * PAGE_SIZE,
+    (page + 1) * PAGE_SIZE
+  );
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -147,26 +166,15 @@ export function DashboardClient({ locations }: DashboardClientProps) {
             placeholder="Gutschein Nr."
             className="px-3 py-2 rounded-lg text-sm border border-gray-300 bg-white w-32"
           />
-          <span className="text-xs text-gray-500">Von</span>
           <input
             type="date"
-            value={dateVon}
-            onChange={(e) => setDateVon(e.target.value)}
-            className="px-2 py-2 rounded-lg text-sm border border-gray-300 bg-white"
-          />
-          <span className="text-xs text-gray-500">Bis</span>
-          <input
-            type="date"
-            value={dateBis}
-            onChange={(e) => setDateBis(e.target.value)}
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
             className="px-2 py-2 rounded-lg text-sm border border-gray-300 bg-white"
           />
           {hasDateFilter && (
             <button
-              onClick={() => {
-                setDateVon("");
-                setDateBis("");
-              }}
+              onClick={() => setDateFilter("")}
               className="px-3 py-2 rounded-lg text-sm font-medium bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors">
               ✕
             </button>
@@ -211,13 +219,7 @@ export function DashboardClient({ locations }: DashboardClientProps) {
             Datum
           </p>
           <p className="text-lg font-bold text-blue-600">
-            {dateVon && dateBis
-              ? `${formatDate(dateVon)} – ${formatDate(dateBis)}`
-              : dateVon
-                ? `Ab ${formatDate(dateVon)}`
-                : dateBis
-                  ? `Bis ${formatDate(dateBis)}`
-                  : "—"}
+            {dateFilter ? formatDate(dateFilter) : "—"}
           </p>
         </div>
       </div>
@@ -250,7 +252,7 @@ export function DashboardClient({ locations }: DashboardClientProps) {
             </tr>
           </thead>
           <tbody>
-            {filteredEntries.length === 0 ? (
+            {paginatedEntries.length === 0 ? (
               <tr>
                 <td
                   colSpan={colCount}
@@ -259,7 +261,7 @@ export function DashboardClient({ locations }: DashboardClientProps) {
                 </td>
               </tr>
             ) : (
-              filteredEntries.map((entry) => (
+              paginatedEntries.map((entry) => (
                 <tr
                   key={entry.id}
                   className="border-b border-gray-100 hover:bg-gray-50">
@@ -332,6 +334,29 @@ export function DashboardClient({ locations }: DashboardClientProps) {
           )}
         </table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-sm text-gray-500">
+            Seite {page + 1} von {totalPages} ({filteredEntries.length} Einträge)
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+              ← Zurück
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+              className="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+              Weiter →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
