@@ -1,0 +1,139 @@
+import prisma from "@lib/db";
+
+interface HistoryEntry {
+  id: string;
+  couponId: string;
+  date: string;
+  employee: string;
+  description: string;
+  type: "redeemed" | "created";
+  value: number;
+  couponType: string;
+}
+
+interface LocationData {
+  location: string;
+  entries: HistoryEntry[];
+  totalRedeemed: number;
+  totalRedeemedCount: number;
+  totalCreated: number;
+  totalCreatedCount: number;
+}
+
+export async function GET() {
+  try {
+    const history = await prisma.couponHistory.findMany({
+      orderBy: { modifiedAt: "desc" },
+    });
+
+    const locations = [
+      "Braugasse",
+      "Transit",
+      "Pit Stop",
+      "Wirges",
+      "Büro",
+      "Eiswagen",
+      "Online",
+    ];
+
+    const byLocation: Record<string, LocationData> = {};
+
+    // Initialize all locations
+    locations.forEach((loc) => {
+      byLocation[loc] = {
+        location: loc,
+        entries: [],
+        totalRedeemed: 0,
+        totalRedeemedCount: 0,
+        totalCreated: 0,
+        totalCreatedCount: 0,
+      };
+    });
+
+    // Find creation entries (oldest history entry per couponId)
+    const creationCouponIds = new Set<string>();
+    for (let i = history.length - 1; i >= 0; i--) {
+      const h = history[i];
+      if (!creationCouponIds.has(h.couponId)) {
+        creationCouponIds.add(h.couponId);
+
+        const loc = h.location || "Online";
+        if (!byLocation[loc]) {
+          byLocation[loc] = {
+            location: loc,
+            entries: [],
+            totalRedeemed: 0,
+            totalRedeemedCount: 0,
+            totalCreated: 0,
+            totalCreatedCount: 0,
+          };
+        }
+
+        const firstValue = Number(h.firstValue) || 0;
+        byLocation[loc].totalCreated += firstValue;
+        byLocation[loc].totalCreatedCount += 1;
+        byLocation[loc].entries.push({
+          id: h.id + "-created",
+          couponId: h.couponId,
+          date: h.modifiedAt.toISOString().substring(0, 10),
+          employee: h.employee,
+          description: h.description,
+          type: "created",
+          value: Math.round(firstValue * 100) / 100,
+          couponType: h.couponType,
+        });
+      }
+    }
+
+    // Process redeemed entries (usedValue > 0)
+    history.forEach((h) => {
+      const usedVal = Number(h.usedValue) || 0;
+      if (usedVal > 0) {
+        const loc = h.location || "Online";
+        if (!byLocation[loc]) {
+          byLocation[loc] = {
+            location: loc,
+            entries: [],
+            totalRedeemed: 0,
+            totalRedeemedCount: 0,
+            totalCreated: 0,
+            totalCreatedCount: 0,
+          };
+        }
+
+        byLocation[loc].totalRedeemed += usedVal;
+        byLocation[loc].totalRedeemedCount += 1;
+        byLocation[loc].entries.push({
+          id: h.id,
+          couponId: h.couponId,
+          date: h.modifiedAt.toISOString().substring(0, 10),
+          employee: h.employee,
+          description: h.description,
+          type: "redeemed",
+          value: Math.round(usedVal * 100) / 100,
+          couponType: h.couponType,
+        });
+      }
+    });
+
+    // Sort entries by date descending
+    Object.values(byLocation).forEach((loc) => {
+      loc.entries.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      loc.totalRedeemed = Math.round(loc.totalRedeemed * 100) / 100;
+      loc.totalCreated = Math.round(loc.totalCreated * 100) / 100;
+    });
+
+    return Response.json(
+      { locations: Object.values(byLocation) },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Dashboard API error:", error);
+    return Response.json(
+      { error: "Failed to fetch dashboard data" },
+      { status: 500 }
+    );
+  }
+}

@@ -93,4 +93,4 @@ export const LOCATION_NAMES = [
   "Eiswagen",
 ];
 
-export const PREIS_KLEIN = 2.4;
+export const PREIS_KLEIN = 2.5;

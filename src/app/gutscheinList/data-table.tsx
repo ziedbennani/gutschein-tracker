@@ -495,9 +495,8 @@ function DataTableInternal({
                 </TableRow>
               ) : table.getRowModel().rows?.length === 1 ? (
                 table.getRowModel().rows.map((row) => (
-                  <>
+                  <React.Fragment key={row.id}>
                     <TableRow
-                      key={row.id}
                       data-state={row.getIsSelected() && "selected"}>
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
@@ -650,7 +649,7 @@ function DataTableInternal({
                         )}
                       </TableCell>
                     </TableRow>
-                  </>
+                  </React.Fragment>
                 ))
               ) : (
                 table.getRowModel().rows.map((row) => (

@@ -402,7 +402,7 @@ export function ProfileForm({
           requestData = {
             ...baseData,
             couponType: "klein",
-            firstValue: 2.4,
+            firstValue: 2.5,
             usedValue: 0,
             restValue: 0,
           };

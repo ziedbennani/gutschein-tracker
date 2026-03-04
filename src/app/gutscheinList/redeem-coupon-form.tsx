@@ -134,7 +134,7 @@ export function RedeemForm({
           }
         : {
             // For klein coupons
-            usedValue: 2.4,
+            usedValue: 2.5,
             employee: "",
             location: defaultLocation,
           },
@@ -509,7 +509,7 @@ export function RedeemForm({
 
                       // For klein coupons, set usedValue to 0 if not provided
                       if (coupon.couponType === "klein") {
-                        form.setValue("usedValue", 2.4);
+                        form.setValue("usedValue", 2.5);
                       }
 
                       // Calculate restBetrag based on current form values
