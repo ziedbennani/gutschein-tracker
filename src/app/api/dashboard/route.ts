@@ -26,6 +26,18 @@ export async function GET() {
       orderBy: { modifiedAt: "desc" },
     });
 
+    // Get online coupons that have no history entries
+    const couponsWithHistory = new Set(history.map((h) => h.couponId));
+    const onlineCouponsNoHistory = await prisma.coupon.findMany({
+      where: {
+        location: "Online",
+        id: {
+          notIn: Array.from(couponsWithHistory),
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
     const locations = [
       "Braugasse",
       "Transit",
@@ -114,6 +126,23 @@ export async function GET() {
           couponType: h.couponType,
         });
       }
+    });
+
+    // Add online coupons with no history (created but never touched)
+    onlineCouponsNoHistory.forEach((coupon) => {
+      const value = Number(coupon.firstValue) || 0;
+      byLocation["Online"].totalCreated += value;
+      byLocation["Online"].totalCreatedCount += 1;
+      byLocation["Online"].entries.push({
+        id: coupon.id + "-created",
+        couponId: coupon.id,
+        date: coupon.createdAt.toISOString().substring(0, 10),
+        employee: coupon.employee,
+        description: coupon.description,
+        type: "created",
+        value: Math.round(value * 100) / 100,
+        couponType: coupon.couponType,
+      });
     });
 
     // Sort entries by date descending
