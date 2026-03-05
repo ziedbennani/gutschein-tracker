@@ -73,6 +73,9 @@ export async function GET() {
       if (!creationCouponIds.has(h.couponId)) {
         creationCouponIds.add(h.couponId);
 
+        // Only show "Neu" if description contains "NEU!"
+        if (!h.description.includes("NEU!")) continue;
+
         // Online coupons (starting with "e") always go to Online tab
         const isOnlineCoupon = h.couponId.startsWith("e");
         const loc = isOnlineCoupon ? "Online" : h.location;
