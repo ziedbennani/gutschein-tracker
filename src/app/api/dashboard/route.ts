@@ -27,10 +27,14 @@ export async function GET() {
     });
 
     // Get online coupons that have no history entries
+    // Online coupons are those with location="Online" OR id starting with "e"
     const couponsWithHistory = new Set(history.map((h) => h.couponId));
     const onlineCouponsNoHistory = await prisma.coupon.findMany({
       where: {
-        location: "Online",
+        OR: [
+          { location: "Online" },
+          { id: { startsWith: "e" } },
+        ],
         id: {
           notIn: Array.from(couponsWithHistory),
         },
@@ -69,7 +73,9 @@ export async function GET() {
       if (!creationCouponIds.has(h.couponId)) {
         creationCouponIds.add(h.couponId);
 
-        const loc = h.location;
+        // Online coupons (starting with "e") always go to Online tab
+        const isOnlineCoupon = h.couponId.startsWith("e");
+        const loc = isOnlineCoupon ? "Online" : h.location;
         if (!loc || !byLocation[loc]) continue; // Skip if location is null or doesn't exist
 
         const firstValue = Number(h.firstValue) || 0;
@@ -92,6 +98,7 @@ export async function GET() {
     history.forEach((h) => {
       const usedVal = Number(h.usedValue) || 0;
       if (usedVal > 0) {
+        // Online coupons (starting with "e") only show in Online when created, but when redeemed show in actual location
         const loc = h.location;
         if (!loc || !byLocation[loc]) return; // Skip if location is null or doesn't exist
 
