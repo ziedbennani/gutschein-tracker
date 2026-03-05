@@ -69,17 +69,8 @@ export async function GET() {
       if (!creationCouponIds.has(h.couponId)) {
         creationCouponIds.add(h.couponId);
 
-        const loc = h.location || "Online";
-        if (!byLocation[loc]) {
-          byLocation[loc] = {
-            location: loc,
-            entries: [],
-            totalRedeemed: 0,
-            totalRedeemedCount: 0,
-            totalCreated: 0,
-            totalCreatedCount: 0,
-          };
-        }
+        const loc = h.location;
+        if (!loc || !byLocation[loc]) continue; // Skip if location is null or doesn't exist
 
         const firstValue = Number(h.firstValue) || 0;
         byLocation[loc].totalCreated += firstValue;
@@ -101,17 +92,8 @@ export async function GET() {
     history.forEach((h) => {
       const usedVal = Number(h.usedValue) || 0;
       if (usedVal > 0) {
-        const loc = h.location || "Online";
-        if (!byLocation[loc]) {
-          byLocation[loc] = {
-            location: loc,
-            entries: [],
-            totalRedeemed: 0,
-            totalRedeemedCount: 0,
-            totalCreated: 0,
-            totalCreatedCount: 0,
-          };
-        }
+        const loc = h.location;
+        if (!loc || !byLocation[loc]) return; // Skip if location is null or doesn't exist
 
         byLocation[loc].totalRedeemed += usedVal;
         byLocation[loc].totalRedeemedCount += 1;
