@@ -105,7 +105,11 @@ export async function GET() {
         const loc = h.location;
         if (!loc || !byLocation[loc]) return; // Skip if location is null or doesn't exist
 
-        byLocation[loc].totalRedeemed += usedVal;
+        // Calculate actual coupon value used (subtract extraPayment)
+        const extraPayment = Number(h.extraPayment) || 0;
+        const couponValueUsed = usedVal - extraPayment;
+
+        byLocation[loc].totalRedeemed += couponValueUsed;
         byLocation[loc].totalRedeemedCount += 1;
         byLocation[loc].entries.push({
           id: h.id,
@@ -114,7 +118,7 @@ export async function GET() {
           employee: h.employee,
           description: h.description,
           type: "redeemed",
-          value: Math.round(usedVal * 100) / 100,
+          value: Math.round(couponValueUsed * 100) / 100,
           couponType: h.couponType,
         });
       }
